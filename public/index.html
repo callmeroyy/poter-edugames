@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unduh POTER EDUGAMES - Game Edukasi Anak PAUD & SD Resmi</title>
+  <meta name="description" content="Unduh berkas resmi APK POTER EDUGAMES untuk Android. Game edukasi 2D & teknologi hologram interaktif untuk melatih nalar, logika, dan ketelitian anak.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231D4ED8'/><text x='50%' y='65%' font-size='60' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
+</head>
+<body>
+
+  <!-- Interactive Pull-Cord Day/Night Switch (Tali Benang Gantung Pengubah Tema) -->
+  <div class="pull-cord-wrap" id="pullCordWrap" role="region" aria-label="Saklar Tema Siang dan Malam">
+    <div class="cord-string" id="cordString"></div>
+    <div class="cord-handle" id="cordHandle" role="button" tabindex="0" aria-label="Tarik tali untuk mengubah tema siang atau malam" title="Tarik tali untuk ganti tema (Siang / Malam)">
+      <div class="celestial-orb" id="celestialOrb">
+        <!-- Sun for Daytime -->
+        <div class="orb-sun" id="orbSun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5" fill="#FCD34D"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </div>
+        <!-- Moon for Nighttime -->
+        <div class="orb-moon" id="orbMoon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#38BDF8" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span class="moon-star star-1" aria-hidden="true">✦</span>
+          <span class="moon-star star-2" aria-hidden="true">✦</span>
+          <span class="moon-star star-3" aria-hidden="true">✦</span>
+        </div>
+      </div>
+    </div>
+    <div class="cord-tooltip" id="cordTooltip">Tarik tali: Ganti Mode Malam</div>
+  </div>
+
+  <!-- Header & Glass Navigation -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="/" class="brand-logo" aria-label="POTER EDUGAMES Beranda">
+        <div class="brand-mark">P</div>
+        <div class="brand-text">
+          <h1>POTER EDUGAMES</h1>
+          <span>by PT Poter Teknik Nusantara</span>
+        </div>
+      </a>
+      <nav class="nav-links" aria-label="Navigasi Utama">
+        <a href="#hologram-station" class="nav-link">Teknologi 3D</a>
+        <a href="#permainan" class="nav-link">Game</a>
+        <a href="#versi" class="nav-link">Versi</a>
+        <a href="#cara-pasang" class="nav-link">Cara Pasang</a>
+        <a href="#bantuan" class="nav-link">Bantuan</a>
+        <a href="/download" class="btn-header-unduh" id="navDownloadBtn">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3v12"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <path d="M5 21h14"></path>
+          </svg>
+          <span>Unduh APK</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Teknologi Pembelajaran Modern • PAUD - SD
+          </div>
+          
+          <h1 class="hero-title">
+            Unduh <span>POTER EDUGAMES</span>
+          </h1>
+
+          <p class="hero-desc">
+            Game edukasi interaktif dengan teknologi penalaran visual dan hologram 3D untuk melatih logika, ketelitian, dan daya spasial anak usia PAUD hingga SD.
+          </p>
+
+          <div class="specs-grid" id="heroSpecs">
+            <div class="spec-item">
+              <span class="spec-label">Versi Terkini</span>
+              <span class="spec-value" id="specVersion">v1.1.0</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Ukuran Berkas</span>
+              <span class="spec-value" id="specSize">62.4 MB</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Kompatibilitas</span>
+              <span class="spec-value">Android 8.0 ke atas</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Tanggal Rilis</span>
+              <span class="spec-value" id="specDate">7 November 2026</span>
+            </div>
+          </div>
+
+          <div class="cta-group">
+            <a href="/download" class="btn-primary-download" id="mainDownloadBtn">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Unduh APK Sekarang
+            </a>
+
+            <div class="secondary-actions">
+              <button type="button" class="btn-sub-action" id="btnQrCode">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Pindai QR di Ponsel
+              </button>
+
+              <button type="button" class="btn-sub-action" id="btnCopyLink">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                Salin Tautan
+              </button>
+
+              <a href="https://api.whatsapp.com/send?text=Ayo%20unduh%20game%20edukasi%20resmi%20POTER%20EDUGAMES%20untuk%20anak%20PAUD%20hingga%20SD%20disini%3A%20" target="_blank" rel="noopener noreferrer" class="btn-sub-action" id="btnShareWa">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                Bagikan ke WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <div class="hero-tags">
+            <span class="hero-tags-label">Untuk jenjang:</span>
+            <span class="tag-pill tag-paud">PAUD</span>
+            <span class="tag-pill tag-tk">TK</span>
+            <span class="tag-pill tag-sd">SD</span>
+          </div>
+
+          <p class="note-safety">
+            Pemasangan aman dan mandiri. Dirancang khusus oleh PT Poter Teknik Nusantara tanpa iklan komersial.
+          </p>
+        </div>
+
+        <!-- 3D Holographic Learning Station (Centerpiece Glass Projector) -->
+        <div class="hero-visual" id="hologram-station">
+          <div class="hologram-stage-card" aria-label="Stasiun Hologram Edukasi 3D Interaktif">
+            
+            <div class="hologram-top-hud">
+              <div class="holo-pill-badge">
+                <span class="dot"></span>
+                Hologram Edukasi 3D
+              </div>
+              <div class="holo-telemetry-tag" id="holoAngleTag">Rotasi: 0° / 360°</div>
+            </div>
+
+            <!-- Viewport 3D Hologram -->
+            <div class="hologram-viewport" id="holoViewport" data-mode="spasial" title="Geser dengan mouse/jari untuk memutar 360 derajat">
+              <div class="holo-space-grid" aria-hidden="true"></div>
+              <div class="holo-projection-beam" aria-hidden="true"></div>
+
+              <div class="holo-module-status" aria-live="polite">
+                <span class="holo-module-kicker">MODUL AKTIF · CORE 01</span>
+                <strong id="holoModuleName">Eksplorasi Spasial</strong>
+              </div>
+              <span class="holo-drag-hint" aria-hidden="true">DRAG · 360°</span>
+
+              <!-- Concentric Projector Rings -->
+              <div class="hologram-emitter-base" aria-hidden="true"></div>
+              <div class="hologram-emitter-inner" aria-hidden="true"></div>
+              <div class="holo-orbit-ring" aria-hidden="true"></div>
+
+              <!-- 3D Learning Core -->
+              <div class="holo-3d-scene" id="holoScene">
+                <div class="holo-cube" id="holoCube">
+                  <div class="holo-face face-front">
+                    <span class="holo-face-code">01 · SPATIAL</span>
+                    <span class="holo-face-icon" aria-hidden="true">🧊</span>
+                    <span class="holo-face-title">Spasial 3D</span>
+                    <span class="holo-face-sub">Nalar Geometri</span>
+                  </div>
+                  <div class="holo-face face-back">
+                    <span class="holo-face-code">02 · SPATIAL</span>
+                    <span class="holo-face-icon" aria-hidden="true">🧩</span>
+                    <span class="holo-face-title">Teka-Teki</span>
+                    <span class="holo-face-sub">Susun Balok</span>
+                  </div>
+                  <div class="holo-face face-right">
+                    <span class="holo-face-code">03 · SPATIAL</span>
+                    <span class="holo-face-icon" aria-hidden="true">📐</span>
+                    <span class="holo-face-title">Sudut Ruang</span>
+                    <span class="holo-face-sub">Perspektif Anak</span>
+                  </div>
+                  <div class="holo-face face-left">
+                    <span class="holo-face-code">04 · SPATIAL</span>
+                    <span class="holo-face-icon" aria-hidden="true">📦</span>
+                    <span class="holo-face-title">Rapikan!</span>
+                    <span class="holo-face-sub">Klasifikasi Objek</span>
+                  </div>
+                  <div class="holo-face face-top">
+                    <span class="holo-face-code">05 · SPATIAL</span>
+                    <span class="holo-face-icon" aria-hidden="true">🎨</span>
+                    <span class="holo-face-title">Warna Bentuk</span>
+                    <span class="holo-face-sub">Koordinasi Visual</span>
+                  </div>
+                  <div class="holo-face face-bottom">
+                    <span class="holo-face-code">06 · SPATIAL</span>
+                    <span class="holo-face-icon" aria-hidden="true">💎</span>
+                    <span class="holo-face-title">Kristal Nalar</span>
+                    <span class="holo-face-sub">Eksplorasi Bentuk</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hologram Controls -->
+            <div class="hologram-controls">
+              <button type="button" class="btn-holo-control" id="btnToggleHoloRotation" aria-label="Jeda atau lanjutkan putaran 360 derajat">
+                <span id="rotationIcon">⏸</span>
+                <span id="rotationText">Jeda Putaran</span>
+              </button>
+
+              <div class="holo-mode-chips" role="tablist" aria-label="Ganti Modul 3D">
+                <button type="button" class="chip-mode active" data-mode="spasial" role="tab" aria-selected="true">Spasial 3D</button>
+                <button type="button" class="chip-mode" data-mode="sains" role="tab" aria-selected="false">Sains 3D</button>
+                <button type="button" class="chip-mode" data-mode="logika" role="tab" aria-selected="false">Logika</button>
+              </div>
+            </div>
+
+            <p class="holo-caption">
+              ✨ Sentuh dan geser hologram di atas untuk memutar sudut pandang 360°.
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Isi Permainan Section -->
+    <section class="section" id="permainan">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Isi Permainan & Modul</span>
+          <h2 class="section-title">Banyak cara seru untuk berlatih nalar</h2>
+          <p class="section-desc">
+            Setiap modul dirancang sesuai fase perkembangan anak usia PAUD, TK, dan SD agar anak dapat meningkatkan penalaran dengan antusias.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon-wrap icon-blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+            </div>
+            <h3>Pasangkan</h3>
+            <span class="feature-category">Kartu Memori</span>
+            <p class="feature-desc">Mencocokkan pasangan kartu gambar edukatif untuk melatih konsentrasi, visualisasi, dan daya ingat jangka pendek anak.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap icon-cyan">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 7h-9"></path>
+                <path d="M14 17H5"></path>
+                <circle cx="17" cy="17" r="3"></circle>
+                <circle cx="7" cy="7" r="3"></circle>
+              </svg>
+            </div>
+            <h3>Mengelompokkan</h3>
+            <span class="feature-category">Memilah Kue</span>
+            <p class="feature-desc">Memisahkan aneka kue berdasarkan kategori warna, bentuk, dan ukuran agar anak terbiasa mengklasifikasikan objek.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap icon-amber">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path>
+                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path>
+                <path d="M7 21h10"></path>
+                <path d="M12 3v18"></path>
+                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>
+              </svg>
+            </div>
+            <h3>Timbangan Pasar</h3>
+            <span class="feature-category">Bandingkan Berat</span>
+            <p class="feature-desc">Memahami konsep seimbang, lebih berat, dan lebih ringan menggunakan timbangan interaktif bergaya pasar tradisional.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap icon-red">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+            </div>
+            <h3>Buka Jalan</h3>
+            <span class="feature-category">Strategi & Logika</span>
+            <p class="feature-desc">Menggeser rintangan balok untuk membuka jalur jalan mobil, melatih perencanaan langkah dan pemecahan masalah.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap icon-purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                <rect x="1" y="3" width="22" height="5"></rect>
+                <line x1="10" y1="12" x2="14" y2="12"></line>
+              </svg>
+            </div>
+            <h3>Rapikan!</h3>
+            <span class="feature-category">Kemampuan Spasial</span>
+            <p class="feature-desc">Menata barang-barang sekolah dan mainan ke dalam rak yang tepat untuk mengasah kesadaran ruang dan kerapian.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap icon-gray">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+            <h3>Masih Banyak Lagi</h3>
+            <span class="feature-category">Segera Hadir</span>
+            <p class="feature-desc">Tim pendidik PT Poter Teknik Nusantara terus mengembangkan mini game baru pada setiap pembaruan berkala.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Riwayat & Arsip Versi -->
+    <section class="section" id="versi">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Riwayat & Arsip</span>
+          <h2 class="section-title">Semua versi aplikasi</h2>
+          <p class="section-desc">
+            Pakai versi terbaru agar mendapat perbaikan dan game baru. Anda juga dapat mengunduh versi terdahulu jika diperlukan.
+          </p>
+        </div>
+
+        <div class="versions-list" id="versionsContainer">
+          <!-- Versi v1.1.0 -->
+          <div class="version-item highlight">
+            <div class="version-info">
+              <div class="version-header-line">
+                <span class="version-number">v1.1.0</span>
+                <span class="version-badge-rec">TERBARU - DIREKOMENDASIKAN</span>
+              </div>
+              <div class="version-meta">
+                7 November 2026 • 62.4 MB • Android 8.0 ke atas
+              </div>
+              <ul class="version-changelog">
+                <li>Game baru: Rapikan! (melatih kemampuan spasial dan klasifikasi objek).</li>
+                <li>Tombol petunjuk dan ulang kini ada di pojok kanan atas.</li>
+                <li>Perbaikan animasi dan peningkatan kestabilan pada perangkat RAM 2GB.</li>
+              </ul>
+            </div>
+            <a href="/download/v1.1.0" class="btn-version-unduh">Unduh v1.1.0</a>
+          </div>
+
+          <!-- Versi v1.0.0 -->
+          <div class="version-item">
+            <div class="version-info">
+              <div class="version-header-line">
+                <span class="version-number">v1.0.0</span>
+              </div>
+              <div class="version-meta">
+                24 Oktober 2026 • 55.0 MB • Android 8.0 ke atas
+              </div>
+              <ul class="version-changelog">
+                <li>Rilis perdana: Pasangkan, Mengelompokkan, Timbangan Pasar, dan Buka Jalan.</li>
+                <li>Dukungan grafis 2D ramah anak tanpa iklan.</li>
+              </ul>
+            </div>
+            <a href="/download/v1.0.0" class="btn-version-unduh secondary">Unduh v1.0.0</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 Langkah Cara Pasang -->
+    <section class="section" id="cara-pasang">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Cara Pasang</span>
+          <h2 class="section-title">3 langkah mudah di Android</h2>
+          <p class="section-desc">Tidak sampai satu menit untuk mulai bermain bersama anak.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Unduh APK</h3>
+            <p>Ketuk tombol Unduh APK dan tunggu sampai berkas selesai tersimpan di ponsel atau tablet Android Anda.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <h3>Izinkan instalasi</h3>
+            <p>Buka berkas APK. Jika muncul peringatan keamanan, pilih Setelan, aktifkan "Izinkan dari sumber ini", atau pilih "Tetap instal".</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <h3>Buka & main</h3>
+            <p>Setelah terpasang, buka ikon POTER EDUGAMES dari layar utama ponsel Anda dan mulai dampingi anak bermain dan belajar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Untuk Orang Tua & Guru (FAQ / Bantuan) -->
+    <section class="section" id="bantuan">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Untuk Orang Tua & Guru</span>
+          <h2 class="section-title">Sebelum memasang</h2>
+          <p class="section-desc">Beberapa hal yang sering ditanyakan seputar keamanan berkas APK.</p>
+        </div>
+
+        <div class="faq-grid">
+          <div class="faq-card">
+            <h3>Mengapa muncul peringatan?</h3>
+            <p>Aplikasi dipasang langsung dari berkas APK mandiri, bukan lewat Google Play Store, sehingga sistem keamanan Android menampilkan dialog konfirmasi standar demi kehati-hatian pengguna.</p>
+          </div>
+
+          <div class="faq-card">
+            <h3>Unduh dari sini saja</h3>
+            <p>Halaman ini adalah satu-satunya portal rilis resmi PT Poter Teknik Nusantara. Hindari memasang APK POTER EDUGAMES dari tautan grup obrolan atau situs tidak dikenal.</p>
+          </div>
+
+          <div class="faq-card">
+            <h3>Perlu bantuan teknis?</h3>
+            <p>Hubungi tim pengembang dan pendidik POTER EDUGAMES melalui email resmi di <a href="mailto:poteredugames@gmail.com" style="color: var(--primary); font-weight: 700;">poteredugames@gmail.com</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Glass Footer -->
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <div class="brand-logo">
+        <div class="brand-mark" style="width: 32px; height: 32px; font-size: 0.95rem;">P</div>
+        <div class="brand-text">
+          <strong style="font-size: 0.95rem; color: var(--text-main);">POTER EDUGAMES</strong>
+        </div>
+      </div>
+      <div class="footer-copy">
+        by PT Poter Teknik Nusantara • © 2026 Hak Cipta Dilindungi
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal QR Code -->
+  <div class="modal-overlay" id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="qrCloseBtn" aria-label="Tutup popup QR">&times;</button>
+      <h3 class="modal-title" id="qrTitle">Pindai untuk Unduh di Ponsel</h3>
+      <p class="modal-desc">Buka kamera ponsel atau aplikasi pemindai QR Anda untuk langsung mengunduh APK ke perangkat Android.</p>
+      
+      <div class="qr-display" id="qrDisplayArea">
+        <div style="padding: 40px; color: var(--text-subtle); font-size: 0.9rem;">Memuat QR Code...</div>
+      </div>
+
+      <p style="font-size: 0.8rem; color: var(--text-subtle);">
+        Tautan otomatis mengarah ke versi APK stabil terbaru.
+      </p>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Unduhan -->
+  <div class="modal-overlay" id="downloadModal" role="dialog" aria-modal="true" aria-labelledby="downloadModalTitle">
+    <div class="modal-content">
+      <button type="button" class="modal-close" id="downloadCloseBtn" aria-label="Tutup">&times;</button>
+      <div style="width: 56px; height: 56px; border-radius: 50%; background-color: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+      <h3 class="modal-title" id="downloadModalTitle">Sedang Mengunduh APK</h3>
+      <p class="modal-desc">Berkas APK sedang diunduh ke perangkat Anda. Jika unduhan belum berjalan otomatis dalam beberapa detik, silakan klik tombol di bawah.</p>
+      
+      <div style="background: rgba(241, 245, 249, 0.8); border: 1px solid var(--glass-border); border-radius: 8px; padding: 14px; text-align: left; margin-bottom: 20px;">
+        <strong style="font-size: 0.85rem; color: var(--text-main); display: block; margin-bottom: 4px;">Langkah Selanjutnya di Android:</strong>
+        <ol style="font-size: 0.82rem; color: var(--text-muted); padding-left: 18px; line-height: 1.4;">
+          <li>Buka bar notifikasi atau folder Download di ponsel Anda.</li>
+          <li>Ketuk berkas <b>POTER-EDUGAMES-v1.1.0.apk</b>.</li>
+          <li>Pilih <b>Tetap Pasang</b> jika ada konfirmasi sistem.</li>
+        </ol>
+      </div>
+
+      <a href="/download" class="btn-primary-download" style="max-width: 100%; font-size: 0.95rem; padding: 12px 20px; min-height: 44px;">
+        Unduh Ulang Berkas APK
+      </a>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastMessage">Tautan berhasil disalin ke papan klip!</div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

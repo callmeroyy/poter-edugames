@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Pemantau Distribusi APK - POTER EDUGAMES</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231D4ED8'/><text x='50%' y='65%' font-size='60' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- Admin Top Navbar -->
+  <header class="admin-navbar">
+    <div class="admin-nav-brand">
+      <div class="admin-brand-mark">P</div>
+      <div>
+        <strong class="admin-brand-name">POTER EDUGAMES</strong>
+        <span class="admin-brand-subtitle">Dashboard Distribusi & Audit</span>
+      </div>
+      <span class="badge"><span></span> Live</span>
+    </div>
+
+    <div class="admin-nav-user">
+      <div class="admin-clock" id="liveClock">--:--:-- WIB</div>
+      <div class="admin-user-chip" title="Admin yang sedang aktif">
+        <span class="admin-user-avatar">A</span>
+        <span id="adminUsername">admin</span>
+      </div>
+      <a href="/" target="_blank" class="btn-admin-nav btn-admin-site" id="btnOpenPublicSite" title="Lihat Portal Publik">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 3h7v7"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>
+        </svg>
+        Lihat Web
+      </a>
+      <button type="button" class="btn-admin-nav btn-admin-logout" id="btnLogout">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        Keluar
+      </button>
+    </div>
+  </header>
+
+  <!-- Admin Main Content -->
+  <main class="admin-main">
+    
+    <!-- Single dashboard view filter -->
+    <div class="dashboard-view-switcher">
+      <div class="view-switcher-copy">
+        <span class="view-switcher-eyebrow">Tampilan Dashboard</span>
+        <strong id="activeViewTitle">Ringkasan & Grafik</strong>
+        <small id="activeViewDescription">Ikhtisar trafik publik dan unduhan APK yang telah selesai dikirim.</small>
+      </div>
+      <label class="view-select-wrap" for="dashboardViewFilter">
+        <span>Pilih data</span>
+        <select id="dashboardViewFilter" class="dashboard-view-select">
+          <option value="tab-overview">Ringkasan & Grafik</option>
+          <option value="tab-access-logs">Riwayat Akses Web</option>
+          <option value="tab-download-logs">Unduhan APK Terverifikasi</option>
+          <option value="tab-install-logs">Telemetri Pemasangan</option>
+          <option value="tab-admin-audit">Aktivitas Admin</option>
+          <option value="tab-versions">Kelola Versi Game</option>
+          <option value="tab-docs">Panduan Telemetri</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- TAB 1: OVERVIEW & CHARTS -->
+    <section id="tab-overview" class="tab-content" role="tabpanel">
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">
+            Total Kunjungan Web
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </div>
+          <div class="kpi-value" id="statTotalVisits">-</div>
+          <div class="kpi-sub">
+            <span class="kpi-tag-success" id="statTodayVisits">+0</span> kunjungan hari ini
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-title">
+            Pengunjung Unik
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div class="kpi-value" id="statUniqueVisitors">-</div>
+          <div class="kpi-sub">Berdasarkan alamat IP unik</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-title">
+            Unduhan APK Terverifikasi
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </div>
+          <div class="kpi-value" id="statTotalDownloads">-</div>
+          <div class="kpi-sub">
+            Transfer selesai • rasio: <b id="statDownloadRate">0%</b>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-title">
+            Instalasi Terkonfirmasi
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <div class="kpi-value" id="statTotalInstalls">-</div>
+          <div class="kpi-sub">
+            Rasio install aktif: <b id="statInstallRate">0%</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3 class="chart-card-title">Tren Kunjungan vs Unduhan APK (7 Hari Terakhir)</h3>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h3 class="chart-card-title">Distribusi Sistem Operasi Pengunjung</h3>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="osChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Recent Feed -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <h3 style="font-size: 1.1rem; font-weight: 800;">Aktivitas Terkini (Real-time Feed)</h3>
+          <button type="button" class="btn-export" onclick="loadDashboardStats()">
+            Muat Ulang Data
+          </button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Tipe</th>
+                <th>IP Address</th>
+                <th>Sistem Operasi</th>
+                <th>Browser</th>
+                <th>Rincian / Versi</th>
+              </tr>
+            </thead>
+            <tbody id="recentFeedBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px;">Memuat riwayat...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: ACCESS LOGS -->
+    <section id="tab-access-logs" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--admin-text-main);">Riwayat Akses Pengunjung Web</h2>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted);">Mencatat seluruh interaksi dan pengunjung yang membuka portal download.</p>
+          </div>
+
+          <div class="filter-actions">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="accessSearchInput" placeholder="Cari IP, perangkat, atau halaman..." />
+            </div>
+
+            <select id="accessOsFilter" class="filter-select">
+              <option value="">Semua OS</option>
+              <option value="Android">Android</option>
+              <option value="Windows 10/11">Windows</option>
+              <option value="iOS">iOS (iPhone/iPad)</option>
+              <option value="macOS">macOS</option>
+              <option value="Linux">Linux</option>
+            </select>
+
+            <a href="/api/dashboard/export/access" class="btn-export" download>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Unduh CSV
+            </a>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waktu Akses</th>
+                <th>Alamat IP</th>
+                <th>Perangkat & OS</th>
+                <th>Browser</th>
+                <th>Halaman</th>
+                <th>Rujukan (Referrer)</th>
+              </tr>
+            </thead>
+            <tbody id="accessLogsBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px;">Memuat data akses...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-pagination">
+          <span id="accessPaginationInfo">Menampilkan data...</span>
+          <div class="pagination-controls">
+            <button type="button" class="btn-page" id="btnAccessPrev" disabled>← Sebelumnya</button>
+            <button type="button" class="btn-page" id="btnAccessNext">Berikutnya →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: DOWNLOAD LOGS -->
+    <section id="tab-download-logs" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--admin-text-main);">Unduhan APK Terverifikasi</h2>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted);">Hanya mencatat berkas APK yang selesai dikirim oleh server tanpa error atau pembatalan.</p>
+          </div>
+
+          <div class="filter-actions">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="downloadSearchInput" placeholder="Cari IP atau versi..." />
+            </div>
+
+            <select id="downloadVersionFilter" class="filter-select">
+              <option value="">Semua Versi APK</option>
+              <option value="v1.1.0">v1.1.0</option>
+              <option value="v1.0.0">v1.0.0</option>
+            </select>
+
+            <a href="/api/dashboard/export/downloads" class="btn-export" download>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Unduh CSV
+            </a>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waktu Unduh</th>
+                <th>Versi APK</th>
+                <th>Alamat IP</th>
+                <th>Perangkat & OS</th>
+                <th>Browser</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="downloadLogsBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px;">Memuat data unduhan...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-pagination">
+          <span id="downloadPaginationInfo">Menampilkan data...</span>
+          <div class="pagination-controls">
+            <button type="button" class="btn-page" id="btnDownloadPrev" disabled>← Sebelumnya</button>
+            <button type="button" class="btn-page" id="btnDownloadNext">Berikutnya →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: INSTALL TELEMETRY LOGS -->
+    <section id="tab-install-logs" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--admin-text-main);">Telemetri Pemasangan Berhasil (First Launch)</h2>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted);">Konfirmasi nyata ketika game POTER EDUGAMES telah selesai dipasang dan dibuka di ponsel pengguna.</p>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waktu Pertama Dibuka</th>
+                <th>Versi Aplikasi</th>
+                <th>Model Perangkat Ponsel</th>
+                <th>Versi Android</th>
+                <th>Device Identifier</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody id="installLogsBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px;">Memuat telemetri instalasi...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-pagination">
+          <span id="installPaginationInfo">Menampilkan data...</span>
+          <div class="pagination-controls">
+            <button type="button" class="btn-page" id="btnInstallPrev" disabled>← Sebelumnya</button>
+            <button type="button" class="btn-page" id="btnInstallNext">Berikutnya →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN AUDIT LOGS -->
+    <section id="tab-admin-audit" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--admin-text-main);">Aktivitas & Login Admin</h2>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted);">Log terpisah untuk login berhasil/gagal, logout, navigasi, ekspor data, dan perubahan versi.</p>
+          </div>
+
+          <div class="filter-actions">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="auditSearchInput" placeholder="Cari admin, aksi, IP..." />
+            </div>
+            <select id="auditCategoryFilter" class="filter-select">
+              <option value="">Semua Aktivitas</option>
+              <option value="authentication">Login & Logout</option>
+              <option value="navigation">Navigasi Dashboard</option>
+              <option value="version_management">Kelola Versi</option>
+              <option value="data_export">Ekspor Data</option>
+            </select>
+            <select id="auditStatusFilter" class="filter-select">
+              <option value="">Semua Status</option>
+              <option value="success">Berhasil</option>
+              <option value="denied">Ditolak</option>
+            </select>
+            <a href="/api/dashboard/export/admin-audit" class="btn-export" download>Unduh CSV</a>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Admin</th>
+                <th>Kategori</th>
+                <th>Aktivitas</th>
+                <th>Rincian</th>
+                <th>IP Address</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="auditLogsBody">
+              <tr><td colspan="7" style="text-align: center; padding: 24px;">Memuat aktivitas admin...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-pagination">
+          <span id="auditPaginationInfo">Menampilkan data...</span>
+          <div class="pagination-controls">
+            <button type="button" class="btn-page" id="btnAuditPrev" disabled>← Sebelumnya</button>
+            <button type="button" class="btn-page" id="btnAuditNext">Berikutnya →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: VERSION MANAGER -->
+    <section id="tab-versions" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">Tambah Rilis Versi APK Baru</h2>
+        <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin-bottom: 24px;">Tambahkan versi game edukasi baru yang langsung tampil di portal unduh publik.</p>
+
+        <form id="addVersionForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="newVersionCode">Nomor Versi (Contoh: v1.2.0)</label>
+              <input type="text" id="newVersionCode" placeholder="v1.2.0" required />
+            </div>
+
+            <div class="form-group">
+              <label for="newFileSize">Ukuran Berkas (Contoh: 64.5 MB)</label>
+              <input type="text" id="newFileSize" placeholder="64.5 MB" required />
+            </div>
+
+            <div class="form-group">
+              <label for="newReleaseDate">Tanggal Rilis</label>
+              <input type="text" id="newReleaseDate" placeholder="8 November 2026" />
+            </div>
+
+            <div class="form-group">
+              <label for="newMinAndroid">Minimal Sistem Android</label>
+              <input type="text" id="newMinAndroid" value="Android 8.0 (Oreo) ke atas" />
+            </div>
+
+            <div class="form-group full-width">
+              <label for="newChangelog">Catatan Rilis / Changelog (Satu poin per baris)</label>
+              <textarea id="newChangelog" placeholder="Game baru: Tebak Suara Hewan&#10;Peningkatan performa di layar tablet&#10;Perbaikan tombol menu utama"></textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="newIsLatest" checked />
+                Jadikan sebagai Versi Utama & Direkomendasikan
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit-version" id="btnSaveVersion">
+            Simpan & Publikasikan Versi Baru
+          </button>
+        </form>
+      </div>
+
+      <div class="table-card">
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 16px;">Daftar Versi APK yang Tersedia</h3>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nomor Versi</th>
+                <th>Tanggal Rilis</th>
+                <th>Ukuran</th>
+                <th>Unduhan Terhitung</th>
+                <th>Status</th>
+                <th>Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="versionTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px;">Memuat daftar versi...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: TELEMETRY DOCS -->
+    <section id="tab-docs" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px;">Cara Menghubungkan Game ke Telemetri Dashboard Ini</h2>
+        <p style="font-size: 0.9rem; color: var(--admin-text-muted); line-height: 1.6;">
+          Dashboard ini memiliki endpoint khusus <code>POST /api/track/install</code>. Ketika game dibuka pertama kali oleh anak di ponselnya, game dapat mengirimkan 1 kali HTTP POST request sederhana untuk mencatat bahwa aplikasi telah sukses terpasang dan siap dimainkan.
+        </p>
+
+        <h3 style="font-size: 1rem; font-weight: 800; margin-top: 24px; color: var(--admin-text-main);">1. Contoh Implementasi di Unity (C#)</h3>
+        <div class="code-box">
+using System.Collections;
+using UnityEngine;
+using UnityEngine.Networking;
+
+public class InstallTracker : MonoBehaviour
+{
+    private void Start()
+    {
+        // Jalankan hanya satu kali saat aplikasi pertama kali dipasang
+        if (PlayerPrefs.GetInt("has_tracked_install", 0) == 0)
+        {
+            StartCoroutine(SendInstallPing());
+        }
+    }
+
+    private IEnumerator SendInstallPing()
+    {
+        string json = JsonUtility.ToJson(new {
+            version = "v1.1.0",
+            device_id = SystemInfo.deviceUniqueIdentifier,
+            device_model = SystemInfo.deviceModel,
+            os_version = SystemInfo.operatingSystem
+        });
+
+        using (UnityWebRequest req = UnityWebRequest.PostWwwForm("https://domain-anda.com/api/track/install", json))
+        {
+            req.SetRequestHeader("Content-Type", "application/json");
+            yield return req.SendWebRequest();
+
+            if (req.result == UnityWebRequest.Result.Success)
+            {
+                PlayerPrefs.SetInt("has_tracked_install", 1);
+                PlayerPrefs.Save();
+            }
+        }
+    }
+}
+        </div>
+
+        <h3 style="font-size: 1rem; font-weight: 800; margin-top: 24px; color: var(--admin-text-main);">2. Contoh Uji Coba Cepat via cURL</h3>
+        <div class="code-box">
+curl -X POST http://localhost:3000/api/track/install \
+  -H "Content-Type: application/json" \
+  -d '{"version":"v1.1.0","device_id":"samsung_sm_a54","device_model":"Samsung Galaxy A54","os_version":"Android 14"}'
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

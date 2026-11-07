@@ -1,0 +1,21 @@
+node_modules/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime database and logs
+poter_data.db
+poter_data.db-*
+*.log
+npm-debug.log*
+
+# APK releases are published separately; never commit placeholders/builds.
+public/assets/apks/*.apk
+!public/assets/apks/.gitkeep
+
+# Tooling and operating-system files
+coverage/
+.DS_Store
+Thumbs.db
