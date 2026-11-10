@@ -322,7 +322,7 @@
         <button type="button" class="btn-modal-close" id="closeForgotModal" aria-label="Tutup">&times;</button>
       </div>
       <p class="modal-desc">
-        Masukkan alamat email admin resmi (<b>poteredugames@gmail.com</b>). Tautan pemulihan akan dikirimkan ke kotak masuk email Anda dengan masa aktif 15 menit.
+        Masukkan alamat email admin resmi yang terdaftar. Tautan pemulihan akan dikirimkan ke kotak masuk email Anda dengan masa aktif 15 menit.
       </p>
 
       <div class="login-alert alert-danger" id="forgotError" style="display: none;" role="alert"></div>
@@ -335,8 +335,7 @@
             type="email" 
             id="forgotEmailInput" 
             class="form-input" 
-            placeholder="poteredugames@gmail.com" 
-            value="poteredugames@gmail.com"
+            placeholder="nama@email.com" 
             required 
           />
         </div>
@@ -380,8 +379,9 @@
       function openModal() {
         forgotError.style.display = 'none';
         forgotSuccess.style.display = 'none';
+        if (forgotEmailInput) forgotEmailInput.value = '';
         forgotModalBackdrop.style.display = 'flex';
-        forgotEmailInput.focus();
+        forgotEmailInput?.focus();
       }
 
       function closeModal() {
