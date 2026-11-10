@@ -24,8 +24,7 @@ if (usePostgres) {
 
 function postgresSql(sql) {
   let converted = String(sql)
-    .replace(/datetime\('now',\s*'-(\d+) seconds?'\)/gi, "(CURRENT_TIMESTAMP - INTERVAL '$1 seconds')")
-    .replace(/datetime\('now',\s*'-(\d+) days?'\)/gi, "(CURRENT_TIMESTAMP - INTERVAL '$1 days')")
+    .replace(/datetime\('now',\s*'-(\d+)\s*(second|minute|hour|day)s?'\)/gi, "(CURRENT_TIMESTAMP - INTERVAL '$1 $2s')")
     .replace(/date\('now'\)/gi, 'CURRENT_DATE');
   let parameterIndex = 0;
   converted = converted.replace(/\?/g, () => `$${++parameterIndex}`);
