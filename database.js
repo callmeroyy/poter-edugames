@@ -180,9 +180,14 @@ async function seedDefaults() {
   const username = String(process.env.ADMIN_USERNAME || 'admin').trim();
   const existingAdmin = await db.prepare('SELECT id FROM users WHERE username = ?').get(username);
   if (!existingAdmin) {
-    const password = process.env.ADMIN_PASSWORD || (!usePostgres ? 'poter2026' : crypto.randomBytes(24).toString('base64url'));
+    const password = process.env.ADMIN_PASSWORD || (!usePostgres ? 'poter202612345678910' : crypto.randomBytes(24).toString('base64url'));
     await db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(username, bcrypt.hashSync(password, 10), 'admin');
     if (usePostgres && !process.env.ADMIN_PASSWORD) console.warn('ADMIN_PASSWORD belum diatur; atur sebelum login produksi.');
+  } else if (process.env.ADMIN_PASSWORD) {
+    const userRow = await db.prepare('SELECT password_hash FROM users WHERE username = ?').get(username);
+    if (userRow && !bcrypt.compareSync(process.env.ADMIN_PASSWORD, userRow.password_hash)) {
+      await db.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10), username);
+    }
   }
 
   const versionCount = await db.prepare('SELECT COUNT(*) AS count FROM app_versions').get();

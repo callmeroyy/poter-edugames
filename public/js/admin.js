@@ -833,7 +833,7 @@ function setupVersionForm() {
       });
 
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.message || 'Gagal menyimpan versi.');
+      if (!res.ok || !data.success) throw new Error(data.message || data.error || 'Gagal menyimpan versi.');
       alert(data.message);
       resetVersionForm();
       await loadVersionList();
@@ -951,6 +951,10 @@ async function loadVersionList() {
       }).join('');
     }
 
+    const emptyTrashBtn = document.getElementById('btnEmptyTrash');
+    if (emptyTrashBtn) {
+      emptyTrashBtn.style.display = trashData.data.length > 0 ? 'inline-flex' : 'none';
+    }
     document.getElementById('versionTrashCount').textContent = String(trashData.data.length);
     if (trashBody) {
       trashBody.innerHTML = trashData.data.length === 0
@@ -960,7 +964,12 @@ async function loadVersionList() {
               <td data-label="Nomor Versi"><b class="version-code-cell">${escapeHtml(v.version_code)}</b></td>
               <td data-label="Tanggal Rilis">${escapeHtml(v.release_date || '-')}</td>
               <td data-label="Dipindahkan">${escapeHtml(formatTime(v.deleted_at))}</td>
-              <td data-label="Tindakan"><button type="button" class="btn-version-action restore" onclick="restoreVersion(${v.id})">Pulihkan</button></td>
+              <td data-label="Tindakan">
+                <div class="version-row-actions">
+                  <button type="button" class="btn-version-action restore" onclick="restoreVersion(${v.id}, this)">Pulihkan</button>
+                  <button type="button" class="btn-version-action permanent-delete" onclick="permanentDeleteVersion(${v.id}, this)" title="Hapus permanen dari database">Hapus Permanen</button>
+                </div>
+              </td>
             </tr>
           `).join('');
     }
@@ -986,16 +995,88 @@ async function moveVersionToTrash(versionId) {
   }
 }
 
-async function restoreVersion(versionId) {
+async function restoreVersion(versionId, button) {
   const versionCode = trashVersionCache.get(Number(versionId))?.version_code || 'versi ini';
   if (!confirm(`Pulihkan ${versionCode} dari sampah? Unduhan akan tetap nonaktif sampai Anda mengaktifkannya.`)) return;
+  const originalText = button ? button.textContent : '';
+  if (button) {
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.textContent = 'Memulihkan...';
+  }
   try {
     const res = await fetch(`/api/versions/${versionId}/restore`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.message || 'Gagal memulihkan versi.');
     await loadVersionList();
   } catch (err) {
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = originalText;
+    }
     alert(err.message || 'Gagal memulihkan versi.');
+  }
+}
+
+async function permanentDeleteVersion(versionId, button) {
+  const versionCode = trashVersionCache.get(Number(versionId))?.version_code || 'versi ini';
+  if (!confirm(`Hapus permanen ${versionCode} dari database?\n\nPERINGATAN: Berkas dan data versi akan dihapus seutuhnya dari sistem dan tidak dapat dipulihkan.`)) {
+    return;
+  }
+
+  const originalText = button ? button.textContent : '';
+  if (button) {
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.textContent = 'Menghapus...';
+  }
+
+  try {
+    const res = await fetch(`/api/versions/${versionId}/permanent`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Gagal menghapus versi secara permanen.');
+    alert(data.message);
+    await loadVersionList();
+    loadDashboardStats();
+  } catch (err) {
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = originalText;
+    }
+    alert(err.message || 'Gagal menghapus versi secara permanen.');
+  }
+}
+
+async function emptyTrashVersions(button) {
+  const count = trashVersionCache.size;
+  if (count === 0) return;
+  if (!confirm(`Kosongkan semua sampah (${count} versi)?\n\nPERINGATAN: Seluruh versi di sampah akan dihapus secara permanen dari database dan tidak dapat dipulihkan.`)) {
+    return;
+  }
+
+  const originalText = button ? button.textContent : '';
+  if (button) {
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.textContent = 'Mengosongkan...';
+  }
+
+  try {
+    const res = await fetch('/api/versions/empty-trash', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Gagal mengosongkan sampah.');
+    alert(data.message);
+    await loadVersionList();
+    loadDashboardStats();
+  } catch (err) {
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = originalText;
+    }
+    alert(err.message || 'Gagal mengosongkan sampah.');
   }
 }
 

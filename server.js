@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const { Readable } = require('stream');
 const QRCode = require('qrcode');
 const bcrypt = require('bcryptjs');
-const { issueSignedToken } = require('@vercel/blob');
+const { issueSignedToken, del } = require('@vercel/blob');
 const { handleUploadPresigned } = require('@vercel/blob/client');
 const db = require('./database');
 
@@ -1043,7 +1043,16 @@ app.post('/api/versions', requireAuth, async (req, res) => {
 
     res.json({ success: true, message: `Versi ${version_code} berhasil ditambahkan.` });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    const isDuplicate = String(err.message).includes('UNIQUE constraint failed') ||
+                        String(err.message).includes('duplicate key') ||
+                        err.code === '23505';
+    res.status(isDuplicate ? 409 : 500).json({
+      success: false,
+      message: isDuplicate
+        ? `Nomor versi '${req.body?.version_code}' sudah terdaftar. Gunakan tombol Edit pada tabel di bawah untuk memperbarui berkas APK versi ini.`
+        : (err.message || 'Versi gagal ditambahkan.'),
+      error: err.message
+    });
   }
 });
 
@@ -1136,7 +1145,9 @@ app.put('/api/versions/:id', requireAuth, async (req, res) => {
     const updated = await db.prepare('SELECT * FROM app_versions WHERE id = ?').get(id);
     res.json({ success: true, message: 'Versi berhasil diperbarui.', data: updated });
   } catch (err) {
-    const isDuplicate = String(err.message).includes('UNIQUE constraint failed');
+    const isDuplicate = String(err.message).includes('UNIQUE constraint failed') ||
+                        String(err.message).includes('duplicate key') ||
+                        err.code === '23505';
     res.status(isDuplicate ? 409 : 500).json({
       success: false,
       message: isDuplicate ? 'Nomor versi tersebut sudah digunakan.' : 'Versi gagal diperbarui.',
@@ -1207,6 +1218,74 @@ app.post('/api/versions/:id/restore', requireAuth, async (req, res) => {
     res.json({ success: true, message: `${version.version_code} dipulihkan. Unduhan tetap nonaktif sampai diaktifkan admin.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Versi gagal dipulihkan.', error: err.message });
+  }
+});
+
+// Permanently delete a single trashed version from database and storage
+app.delete('/api/versions/:id/permanent', requireAuth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const version = await db.prepare('SELECT * FROM app_versions WHERE id = ? AND deleted_at IS NOT NULL').get(id);
+    if (!version) {
+      return res.status(404).json({ success: false, message: 'Versi tidak ditemukan di sampah.' });
+    }
+
+    if (validBlobUrl(version.download_url) && typeof del === 'function') {
+      try {
+        await del(version.download_url);
+      } catch (blobErr) {
+        console.warn('Gagal menghapus berkas di Blob:', blobErr.message);
+      }
+    }
+
+    const apkFilePath = path.join(__dirname, 'public', 'assets', 'apks', version.file_name);
+    if (fs.existsSync(apkFilePath)) {
+      try { fs.unlinkSync(apkFilePath); } catch (_) {}
+    }
+
+    await db.prepare('DELETE FROM app_versions WHERE id = ?').run(id);
+
+    await recordAdminAudit(req, {
+      category: 'version_management',
+      action: 'PERMANENT_DELETE_VERSION',
+      details: `Menghapus permanen versi ${version.version_code} dari database`
+    });
+
+    res.json({ success: true, message: `Versi ${version.version_code} berhasil dihapus permanen dari database.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menghapus versi secara permanen.', error: err.message });
+  }
+});
+
+// Empty all trashed versions from database
+app.post('/api/versions/empty-trash', requireAuth, async (req, res) => {
+  try {
+    const trashed = await db.prepare('SELECT * FROM app_versions WHERE deleted_at IS NOT NULL').all();
+    if (trashed.length === 0) {
+      return res.json({ success: true, message: 'Sampah sudah kosong.' });
+    }
+
+    for (const version of trashed) {
+      if (validBlobUrl(version.download_url) && typeof del === 'function') {
+        try { await del(version.download_url); } catch (_) {}
+      }
+      const apkFilePath = path.join(__dirname, 'public', 'assets', 'apks', version.file_name);
+      if (fs.existsSync(apkFilePath)) {
+        try { fs.unlinkSync(apkFilePath); } catch (_) {}
+      }
+    }
+
+    await db.prepare('DELETE FROM app_versions WHERE deleted_at IS NOT NULL').run();
+
+    await recordAdminAudit(req, {
+      category: 'version_management',
+      action: 'EMPTY_VERSION_TRASH',
+      details: `Mengosongkan ${trashed.length} versi dari sampah dan menghapusnya dari database`
+    });
+
+    res.json({ success: true, message: `${trashed.length} versi di sampah berhasil dihapus permanen dari database.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mengosongkan sampah.', error: err.message });
   }
 });
 
