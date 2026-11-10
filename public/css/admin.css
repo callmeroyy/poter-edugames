@@ -664,6 +664,18 @@ body.admin-body {
   color: #166534;
 }
 
+.btn-version-action.reset-count {
+  border-color: #FDBA74;
+  background: #FFF7ED;
+  color: #C2410C;
+}
+
+.btn-version-action.reset-count:hover {
+  background: #FFEDD5;
+  border-color: #FB923C;
+  color: #9A3412;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .version-toggle-track,
   .version-toggle-track span {
@@ -1168,4 +1180,89 @@ body.admin-body {
     text-align: center;
     border-bottom: 0;
   }
+}
+
+/* Safety Reset Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.modal-card {
+  background: #FFFFFF;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  width: 100%;
+  max-width: 480px;
+  padding: 26px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal-title {
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: var(--admin-text-main);
+  margin: 0;
+}
+
+.btn-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.btn-modal-close:hover {
+  background-color: #F1F5F9;
+  color: var(--admin-text-main);
+}
+
+.modal-desc {
+  font-size: 0.88rem;
+  color: var(--admin-text-muted);
+  line-height: 1.55;
+  margin: 0 0 16px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.btn-modal-cancel {
+  padding: 10px 16px;
+  border-radius: 7px;
+  border: 1px solid var(--admin-border);
+  background: #FFFFFF;
+  color: var(--admin-text-main);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-modal-cancel:hover {
+  background: #F1F5F9;
 }

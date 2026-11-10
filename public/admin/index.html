@@ -138,9 +138,14 @@
       <div class="table-card">
         <div class="table-toolbar">
           <h3 style="font-size: 1.1rem; font-weight: 800;">Aktivitas Terkini (Real-time Feed)</h3>
-          <button type="button" class="btn-export" onclick="loadDashboardStats()">
-            Muat Ulang Data
-          </button>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-export" onclick="loadDashboardStats()">
+              Muat Ulang Data
+            </button>
+            <button type="button" class="btn-version-action reset-count" style="min-height: 38px; padding: 6px 14px; font-weight: 700;" onclick="openResetModal('all_telemetry')">
+              Pemeliharaan &amp; Reset Data
+            </button>
+          </div>
         </div>
         <div class="data-table-wrap">
           <table class="data-table">
@@ -192,6 +197,9 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Unduh CSV
             </a>
+            <button type="button" class="btn-version-action permanent-delete" style="min-height: 40px; padding: 8px 14px; font-weight: 700;" onclick="openResetModal('access_logs')">
+              Bersihkan Log Akses
+            </button>
           </div>
         </div>
 
@@ -250,6 +258,9 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Unduh CSV
             </a>
+            <button type="button" class="btn-version-action permanent-delete" style="min-height: 40px; padding: 8px 14px; font-weight: 700;" onclick="openResetModal('download_logs')">
+              Bersihkan Log Unduhan
+            </button>
           </div>
         </div>
 
@@ -290,6 +301,15 @@
           <div>
             <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--admin-text-main);">Telemetri Pemasangan Berhasil (First Launch)</h2>
             <p style="font-size: 0.85rem; color: var(--admin-text-muted);">Konfirmasi nyata ketika game POTER EDUGAMES telah selesai dipasang dan dibuka di ponsel pengguna.</p>
+          </div>
+          <div class="filter-actions">
+            <a href="/api/dashboard/export/installs" class="btn-export" download>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Unduh CSV
+            </a>
+            <button type="button" class="btn-version-action permanent-delete" style="min-height: 40px; padding: 8px 14px; font-weight: 700;" onclick="openResetModal('install_logs')">
+              Bersihkan Log Pemasangan
+            </button>
           </div>
         </div>
 
@@ -579,6 +599,52 @@ curl -X POST http://localhost:3000/api/track/install \
     </section>
 
   </main>
+
+  <!-- Safety Confirmation Modal for Resetting Telemetry & Logs -->
+  <div id="safetyResetModal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="safetyResetModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="safetyResetModalTitle" class="modal-title" style="color: #DC2626;">Konfirmasi Reset Data</h3>
+        <button type="button" class="btn-modal-close" onclick="closeResetModal()" aria-label="Tutup jendela dialog">&times;</button>
+      </div>
+      <p id="safetyResetModalDesc" class="modal-desc"></p>
+
+      <div id="safetyResetBackupWrap" style="margin-bottom: 16px; display: none;">
+        <a id="safetyResetBackupLink" href="#" class="btn-export" download style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-size: 0.85rem; padding: 8px 12px; min-height: 40px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Unduh Cadangan CSV Terlebih Dahulu
+        </a>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label for="safetyResetInput" style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--admin-text-main); margin-bottom: 6px;">
+          Ketik <span style="color: #DC2626; letter-spacing: 1px;">RESET</span> untuk mengonfirmasi:
+        </label>
+        <input
+          type="text"
+          id="safetyResetInput"
+          placeholder="RESET"
+          autocomplete="off"
+          spellcheck="false"
+          style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: 6px; font-size: 0.95rem; font-family: inherit; font-weight: 700;"
+        />
+        <div id="safetyResetError" style="color: #DC2626; font-size: 0.82rem; margin-top: 6px; display: none;"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" onclick="closeResetModal()">Batal</button>
+        <button
+          type="button"
+          id="btnSafetyResetConfirm"
+          class="btn-version-action permanent-delete"
+          style="min-height: 44px; padding: 10px 18px; font-weight: 700; opacity: 0.5; cursor: not-allowed;"
+          disabled
+        >
+          Konfirmasi Reset
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script src="/js/admin-apk-upload.js"></script>
   <script src="/js/admin.js"></script>

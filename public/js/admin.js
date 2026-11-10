@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupDownloadFilters();
   setupAuditFilters();
   setupVersionForm();
+  setupSafetyResetModal();
 
   // Initial Load
   activateDashboardView('tab-overview');
@@ -943,6 +944,7 @@ async function loadVersionList() {
               <div class="version-row-actions">
                 <button type="button" class="btn-version-action edit" onclick="editVersion(${v.id})">Edit</button>
                 ${!isLatest ? `<button type="button" class="btn-version-action primary" onclick="setAsLatestVersion(${v.id})">Jadikan Utama</button>` : ''}
+                <button type="button" class="btn-version-action reset-count" onclick="openResetModal('version_downloads', ${v.id}, '${escapeHtml(v.version_code)}')">Reset Unduhan</button>
                 <button type="button" class="btn-version-action trash" onclick="moveVersionToTrash(${v.id})">Ke Sampah</button>
               </div>
             </td>
@@ -1166,4 +1168,180 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+// Telemetry & Log Reset Handler with Safe Double-Confirmation
+let currentResetContext = null;
+
+function setupSafetyResetModal() {
+  const safetyResetInput = document.getElementById('safetyResetInput');
+  const btnSafetyResetConfirm = document.getElementById('btnSafetyResetConfirm');
+  const safetyResetModal = document.getElementById('safetyResetModal');
+
+  if (safetyResetInput && btnSafetyResetConfirm) {
+    safetyResetInput.addEventListener('input', () => {
+      const isMatch = safetyResetInput.value.trim().toUpperCase() === 'RESET';
+      btnSafetyResetConfirm.disabled = !isMatch;
+      btnSafetyResetConfirm.style.opacity = isMatch ? '1' : '0.5';
+      btnSafetyResetConfirm.style.cursor = isMatch ? 'pointer' : 'not-allowed';
+    });
+
+    safetyResetInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !btnSafetyResetConfirm.disabled) {
+        btnSafetyResetConfirm.click();
+      }
+    });
+
+    btnSafetyResetConfirm.addEventListener('click', executeResetAction);
+  }
+
+  // Close modal on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && safetyResetModal && safetyResetModal.style.display === 'flex') {
+      closeResetModal();
+    }
+  });
+
+  // Close modal when clicking on backdrop outside card
+  if (safetyResetModal) {
+    safetyResetModal.addEventListener('click', (e) => {
+      if (e.target === safetyResetModal) {
+        closeResetModal();
+      }
+    });
+  }
+}
+
+function openResetModal(type, targetId = null, targetLabel = '') {
+  currentResetContext = { type, targetId, targetLabel };
+
+  const modal = document.getElementById('safetyResetModal');
+  const titleEl = document.getElementById('safetyResetModalTitle');
+  const descEl = document.getElementById('safetyResetModalDesc');
+  const backupWrap = document.getElementById('safetyResetBackupWrap');
+  const backupLink = document.getElementById('safetyResetBackupLink');
+  const inputEl = document.getElementById('safetyResetInput');
+  const confirmBtn = document.getElementById('btnSafetyResetConfirm');
+  const errorEl = document.getElementById('safetyResetError');
+
+  if (!modal || !descEl || !inputEl || !confirmBtn) return;
+
+  inputEl.value = '';
+  confirmBtn.disabled = true;
+  confirmBtn.style.opacity = '0.5';
+  confirmBtn.style.cursor = 'not-allowed';
+  confirmBtn.textContent = 'Konfirmasi Reset';
+  if (errorEl) {
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+  }
+
+  if (type === 'version_downloads') {
+    titleEl.textContent = `Reset Unduhan Versi ${targetLabel || ''}`;
+    descEl.textContent = `Tindakan ini akan mereset hitungan unduhan versi ${targetLabel || ''} menjadi 0 dan membersihkan riwayat log unduhan versi ini. Data audit admin akan tetap tersimpan.`;
+    if (backupWrap) backupWrap.style.display = 'none';
+  } else if (type === 'access_logs') {
+    titleEl.textContent = 'Bersihkan Seluruh Riwayat Akses Web';
+    descEl.textContent = 'Seluruh data kunjungan halaman dan alamat IP pengunjung akan dihapus secara permanen. Metrik trafik akan mulai dari nol.';
+    if (backupWrap && backupLink) {
+      backupWrap.style.display = 'block';
+      backupLink.href = '/api/dashboard/export/access';
+      backupLink.setAttribute('download', 'poter_access_logs.csv');
+    }
+  } else if (type === 'download_logs') {
+    titleEl.textContent = 'Bersihkan Seluruh Log Unduhan APK';
+    descEl.textContent = 'Seluruh riwayat unduhan APK terverifikasi akan dihapus permanen dan seluruh hitungan unduhan pada setiap versi game akan direset ke 0.';
+    if (backupWrap && backupLink) {
+      backupWrap.style.display = 'block';
+      backupLink.href = '/api/dashboard/export/downloads';
+      backupLink.setAttribute('download', 'poter_download_logs.csv');
+    }
+  } else if (type === 'install_logs') {
+    titleEl.textContent = 'Bersihkan Riwayat Telemetri Pemasangan';
+    descEl.textContent = 'Seluruh data first-launch dan model perangkat Android dari pemasangan game akan dihapus secara permanen.';
+    if (backupWrap && backupLink) {
+      backupWrap.style.display = 'block';
+      backupLink.href = '/api/dashboard/export/installs';
+      backupLink.setAttribute('download', 'poter_install_logs.csv');
+    }
+  } else if (type === 'all_telemetry') {
+    titleEl.textContent = 'Pemeliharaan Massal: Reset Seluruh Telemetri';
+    descEl.textContent = 'PERINGATAN: Seluruh data riwayat akses pengunjung, riwayat unduhan APK, dan telemetri pemasangan game akan dihapus secara permanen. Seluruh hitungan unduhan versi game akan direset ke 0.';
+    if (backupWrap) backupWrap.style.display = 'none';
+  }
+
+  modal.style.display = 'flex';
+  setTimeout(() => inputEl.focus(), 60);
+}
+
+function closeResetModal() {
+  const modal = document.getElementById('safetyResetModal');
+  if (modal) modal.style.display = 'none';
+  currentResetContext = null;
+}
+
+async function executeResetAction() {
+  if (!currentResetContext) return;
+  const { type, targetId } = currentResetContext;
+  const inputEl = document.getElementById('safetyResetInput');
+  const confirmBtn = document.getElementById('btnSafetyResetConfirm');
+  const errorEl = document.getElementById('safetyResetError');
+
+  const confirmKeyword = inputEl ? inputEl.value.trim() : '';
+  if (confirmKeyword.toUpperCase() !== 'RESET') {
+    if (errorEl) {
+      errorEl.textContent = 'Silakan ketik kata RESET dengan benar.';
+      errorEl.style.display = 'block';
+    }
+    return;
+  }
+
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Memproses...';
+  if (errorEl) errorEl.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/admin/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type,
+        versionId: targetId,
+        confirmKeyword
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Gagal memproses reset.');
+    }
+
+    closeResetModal();
+    alert(data.message || 'Data berhasil direset.');
+
+    // Reload affected sections
+    loadDashboardStats();
+    if (type === 'version_downloads') {
+      loadVersionList();
+    } else if (type === 'access_logs') {
+      loadAccessLogs(1);
+    } else if (type === 'download_logs') {
+      loadDownloadLogs(1);
+      loadVersionList();
+    } else if (type === 'install_logs') {
+      loadInstallLogs(1);
+    } else if (type === 'all_telemetry') {
+      loadVersionList();
+      loadAccessLogs(1);
+      loadDownloadLogs(1);
+      loadInstallLogs(1);
+    }
+  } catch (err) {
+    if (errorEl) {
+      errorEl.textContent = err.message || 'Terjadi kesalahan sistem.';
+      errorEl.style.display = 'block';
+    }
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Konfirmasi Reset';
+  }
 }

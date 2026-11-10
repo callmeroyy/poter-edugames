@@ -1035,8 +1035,98 @@ app.get('/api/dashboard/export/:type', requireAuth, async (req, res) => {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="poter_admin_audit.csv"');
     return res.send(csv);
+  } else if (type === 'installs') {
+    const rows = await db.prepare('SELECT id, version, device_id, device_model, os_version, ip, timestamp FROM install_logs WHERE verified = 1 ORDER BY id DESC').all();
+    let csv = 'ID,Version,Device ID,Device Model,OS Version,IP Address,Timestamp\n';
+    rows.forEach(r => {
+      csv += `"${r.id}","${r.version}","${r.device_id}","${r.device_model}","${r.os_version}","${r.ip}","${r.timestamp}"\n`;
+    });
+    await recordAdminAudit(req, {
+      category: 'data_export',
+      action: 'EXPORT_INSTALL_LOGS',
+      details: `Mengekspor ${rows.length} log pemasangan game`
+    });
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="poter_install_logs.csv"');
+    return res.send(csv);
   } else {
     res.status(400).send('Tipe ekspor tidak dikenali.');
+  }
+});
+
+// Master Telemetry & Log Reset Handler (Protected by double confirmation)
+app.post('/api/admin/reset', requireAuth, async (req, res) => {
+  try {
+    const { type, versionId, confirmKeyword } = req.body || {};
+
+    if (String(confirmKeyword || '').trim().toUpperCase() !== 'RESET') {
+      return res.status(400).json({
+        success: false,
+        message: 'Kata kunci konfirmasi salah. Harap ketik RESET untuk melanjutkan.'
+      });
+    }
+
+    let message = '';
+    let auditAction = '';
+    let auditDetails = '';
+
+    await db.transaction(async tx => {
+      if (type === 'version_downloads') {
+        if (!versionId) throw new Error('ID versi wajib disertakan untuk reset hitungan versi.');
+        const version = await tx.prepare('SELECT * FROM app_versions WHERE id = ?').get(versionId);
+        if (!version) throw new Error('Versi game tidak ditemukan.');
+
+        const deletedLogs = await tx.prepare('DELETE FROM download_logs WHERE version = ?').run(version.version_code);
+        await tx.prepare('UPDATE app_versions SET download_count = 0 WHERE id = ?').run(versionId);
+
+        auditAction = 'RESET_VERSION_DOWNLOADS';
+        auditDetails = `Mereset hitungan unduhan versi ${version.version_code} menjadi 0 (membersihkan ${deletedLogs.changes || 0} baris log unduhan)`;
+        message = `Hitungan unduhan versi ${version.version_code} berhasil direset ke 0.`;
+      } else if (type === 'access_logs') {
+        const deleted = await tx.prepare('DELETE FROM access_logs').run();
+        auditAction = 'CLEAR_ACCESS_LOGS';
+        auditDetails = `Membersihkan seluruh riwayat kunjungan web (${deleted.changes || 0} baris data)`;
+        message = `Seluruh riwayat kunjungan web (${deleted.changes || 0} baris) berhasil dibersihkan.`;
+      } else if (type === 'download_logs') {
+        const deleted = await tx.prepare('DELETE FROM download_logs').run();
+        await tx.prepare('UPDATE app_versions SET download_count = 0').run();
+        auditAction = 'CLEAR_DOWNLOAD_LOGS';
+        auditDetails = `Membersihkan seluruh log unduhan (${deleted.changes || 0} baris data) dan mereset hitungan seluruh versi ke 0`;
+        message = `Seluruh log unduhan terverifikasi (${deleted.changes || 0} baris) berhasil dibersihkan dan hitungan seluruh versi diatur ulang ke 0.`;
+      } else if (type === 'install_logs') {
+        const deleted = await tx.prepare('DELETE FROM install_logs').run();
+        auditAction = 'CLEAR_INSTALL_LOGS';
+        auditDetails = `Membersihkan seluruh log telemetri pemasangan (${deleted.changes || 0} baris data)`;
+        message = `Seluruh data telemetri pemasangan (${deleted.changes || 0} baris) berhasil dibersihkan.`;
+      } else if (type === 'all_telemetry') {
+        const deletedAccess = await tx.prepare('DELETE FROM access_logs').run();
+        const deletedDownloads = await tx.prepare('DELETE FROM download_logs').run();
+        const deletedInstalls = await tx.prepare('DELETE FROM install_logs').run();
+        await tx.prepare('UPDATE app_versions SET download_count = 0').run();
+
+        const totalCleared = (deletedAccess.changes || 0) + (deletedDownloads.changes || 0) + (deletedInstalls.changes || 0);
+        auditAction = 'PURGE_ALL_TELEMETRY';
+        auditDetails = `Pembersihan massal seluruh telemetri: ${deletedAccess.changes || 0} akses, ${deletedDownloads.changes || 0} unduhan, ${deletedInstalls.changes || 0} pemasangan`;
+        message = `Pembersihan massal selesai. Total ${totalCleared} baris riwayat berhasil dihapus dan seluruh metrik kembali ke 0.`;
+      } else {
+        throw new Error('Tipe pengaturan ulang (reset type) tidak dikenali.');
+      }
+    });
+
+    await recordAdminAudit(req, {
+      category: 'data_maintenance',
+      action: auditAction,
+      details: auditDetails
+    });
+
+    res.json({ success: true, message });
+  } catch (err) {
+    console.error('Data reset error:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message || 'Gagal memproses pengaturan ulang data.',
+      error: err.message
+    });
   }
 });
 
