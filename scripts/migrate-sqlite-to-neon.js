@@ -1,6 +1,7 @@
 const path = require('path');
 const Database = require('better-sqlite3');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL wajib diatur sebelum migrasi.');
@@ -57,6 +58,18 @@ async function main() {
       const rows = readRows(table, columns);
       await insertRows(client, table, columns, rows);
       counts[table] = rows.length;
+    }
+
+    if (process.env.ADMIN_PASSWORD) {
+      const username = process.env.ADMIN_USERNAME || 'admin';
+      const passwordHash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12);
+      await client.query(
+        `INSERT INTO users (username, password_hash, role)
+         VALUES ($1, $2, 'admin')
+         ON CONFLICT (username)
+         DO UPDATE SET password_hash = EXCLUDED.password_hash, role = 'admin'`,
+        [username, passwordHash]
+      );
     }
 
     for (const table of Object.keys(tableColumns)) {

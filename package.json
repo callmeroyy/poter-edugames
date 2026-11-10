@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check database.js && node --check scripts/migrate-sqlite-to-neon.js && node --check public/js/main.js && node --check public/js/admin.js",
+    "check": "node --check server.js && node --check database.js && node --check scripts/init-database.js && node --check scripts/migrate-sqlite-to-neon.js && node --check public/js/main.js && node --check public/js/admin.js",
+    "db:init": "node scripts/init-database.js",
     "migrate:neon": "node scripts/migrate-sqlite-to-neon.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
