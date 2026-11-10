@@ -494,6 +494,36 @@ select:focus-visible {
   background: var(--glass-bg);
 }
 
+.btn-header-admin {
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 1px solid var(--glass-border);
+  border: 1px solid color-mix(in srgb, var(--primary) 48%, var(--glass-border));
+  border-radius: 10px;
+  color: var(--primary);
+  background: var(--glass-bg);
+  background: color-mix(in srgb, var(--glass-bg) 82%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-header-admin:hover {
+  color: #FFFFFF;
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.btn-header-admin:active {
+  transform: translateY(0);
+}
+
 .btn-header-unduh {
   background: linear-gradient(135deg, #1D4ED8 0%, #0284C7 100%);
   color: #FFFFFF;
@@ -2478,6 +2508,15 @@ select:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .btn-header-admin {
+    transition: none;
+  }
+
+  .btn-header-admin:hover,
+  .btn-header-admin:active {
+    transform: none;
+  }
+
   .site-header,
   .nav-links,
   .hero-badge,
@@ -2494,6 +2533,22 @@ select:focus-visible {
 }
 
 /* Responsive */
+@media (max-width: 1100px) and (min-width: 641px) {
+  .nav-link {
+    padding-inline: 7px;
+    font-size: 0.8rem;
+  }
+
+  .btn-header-admin {
+    width: 44px;
+    padding-inline: 0;
+  }
+
+  .btn-header-admin span {
+    display: none;
+  }
+}
+
 @media (max-width: 960px) {
   .hero-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -2554,6 +2609,16 @@ select:focus-visible {
 
   .btn-header-unduh {
     display: none;
+  }
+
+  .btn-header-admin {
+    min-height: 44px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+
+  .btn-header-admin span {
+    display: inline;
   }
 
   .features-grid {
