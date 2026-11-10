@@ -1,4 +1,4 @@
-// POTER EDUGAMES - Client Interactions, 3D Hologram Station, & Day/Night Pull-Cord
+// POTER EDUGAMES - Client Interactions, Phone App Preview, & Day/Night Pull-Cord
 
 document.addEventListener('DOMContentLoaded', () => {
   // -----------------------------------------------------------
@@ -7,8 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const pullCordWrap = document.getElementById('pullCordWrap');
   const cordHandle = document.getElementById('cordHandle');
   const cordString = document.getElementById('cordString');
+  const cordThread = document.getElementById('cordThread');
+  const cordThreadShadow = document.getElementById('cordThreadShadow');
+  const cordThreadFiber = document.getElementById('cordThreadFiber');
   const cordTooltip = document.getElementById('cordTooltip');
   const celestialOrb = document.getElementById('celestialOrb');
+  const cordPaths = [cordThreadShadow, cordThread, cordThreadFiber].filter(Boolean);
 
   // Load saved theme or time-based default
   let currentTheme = localStorage.getItem('poter_theme');
@@ -27,92 +31,150 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  let themeAudioContext = null;
+
+  function playThemeSound(theme) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    try {
+      themeAudioContext ??= new AudioContextClass();
+      if (themeAudioContext.state === 'suspended') themeAudioContext.resume();
+
+      const now = themeAudioContext.currentTime;
+      const notes = theme === 'dark' ? [523.25, 392] : [440, 659.25];
+
+      notes.forEach((frequency, index) => {
+        const start = now + (index * 0.11);
+        const oscillator = themeAudioContext.createOscillator();
+        const gain = themeAudioContext.createGain();
+
+        oscillator.type = index === 0 ? 'sine' : 'triangle';
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.035, start + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.28);
+
+        oscillator.connect(gain);
+        gain.connect(themeAudioContext.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 0.3);
+      });
+    } catch (error) {
+      console.warn('Suara tema tidak tersedia:', error);
+    }
+  }
+
   applyTheme(currentTheme);
 
   // --- Drag-based Pull-Cord Interaction ---
   const PULL_THRESHOLD = 40;
-  const MAX_PULL = 120;
+  const MIN_CORD_LENGTH = 28;
+  const MAX_CORD_LENGTH = 190;
+  const MAX_CORD_ANGLE = 72;
 
   let cordDragging = false;
   let cordStartY = 0;
   let cordStartX = 0;
   let cordPullDist = 0;
-  let cordBaseHeight = 85;
+  let cordBaseHeight = 88;
+  let cordCurve = 0;
+  let activeCordPointerId = null;
 
-  function getPointerPos(e) {
-    if (e.touches && e.touches.length > 0) {
-      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-    return { x: e.clientX, y: e.clientY };
+  function drawCord(length, curve = 0) {
+    if (!cordString || cordPaths.length === 0) return;
+    const safeLength = Math.max(1, length);
+    const controlX = 16 + curve;
+    const path = `M16 0 Q${controlX.toFixed(2)} ${(safeLength * 0.52).toFixed(2)} 16 ${safeLength.toFixed(2)}`;
+    cordString.setAttribute('viewBox', `0 0 32 ${safeLength.toFixed(2)}`);
+    cordPaths.forEach(item => item.setAttribute('d', path));
   }
 
+  function relaxCordCurve(fromCurve) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      cordCurve = 0;
+      drawCord(88, 0);
+      return;
+    }
+
+    const startedAt = performance.now();
+    const duration = 480;
+
+    function step(now) {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const decay = Math.cos(progress * Math.PI * 2.5) * Math.pow(1 - progress, 2);
+      cordCurve = fromCurve * decay;
+      drawCord(88, cordCurve);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  drawCord(cordBaseHeight, 0);
+
   function cordDragStart(e) {
-    if (!pullCordWrap || !cordHandle) return;
+    if (!pullCordWrap || !cordHandle || !cordString) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
     e.preventDefault();
-    const pos = getPointerPos(e);
     cordDragging = true;
-    cordStartY = pos.y;
-    cordStartX = pos.x;
+    activeCordPointerId = e.pointerId;
+    cordStartY = e.clientY;
+    cordStartX = e.clientX;
     cordPullDist = 0;
     cordBaseHeight = cordString.getBoundingClientRect().height;
+    cordHandle.setPointerCapture(e.pointerId);
 
     pullCordWrap.classList.add('is-dragging');
     pullCordWrap.classList.remove('is-snapping');
 
-    // Remove transition for real-time feedback
     cordString.style.transition = 'none';
-    cordHandle.style.transition = 'none';
   }
 
   function cordDragMove(e) {
-    if (!cordDragging) return;
-    const pos = getPointerPos(e);
-    const deltaY = pos.y - cordStartY;
-    const deltaX = pos.x - cordStartX;
+    if (!cordDragging || e.pointerId !== activeCordPointerId) return;
+    e.preventDefault();
 
-    // Pull distance = max of downward pull or total displacement
-    cordPullDist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    // Clamp the visual stretch (mostly care about downward)
-    const visualPull = Math.max(0, Math.min(deltaY, MAX_PULL));
+    const deltaY = e.clientY - cordStartY;
+    const deltaX = e.clientX - cordStartX;
 
-    // Rubber-band feel: diminishing returns past threshold
-    let rubberPull;
-    if (visualPull <= PULL_THRESHOLD) {
-      rubberPull = visualPull;
-    } else {
-      rubberPull = PULL_THRESHOLD + (visualPull - PULL_THRESHOLD) * 0.4;
-    }
+    cordPullDist = Math.max(0, deltaY);
+    const endpointY = Math.max(18, cordBaseHeight + deltaY);
+    const requestedLength = Math.hypot(deltaX, endpointY);
+    const cordLength = requestedLength > MAX_CORD_LENGTH
+      ? MAX_CORD_LENGTH + Math.min(28, (requestedLength - MAX_CORD_LENGTH) * 0.12)
+      : Math.max(MIN_CORD_LENGTH, requestedLength);
+    const pointerAngle = -(Math.atan2(deltaX, endpointY) * 180 / Math.PI);
+    const freeAngle = Math.max(-MAX_CORD_ANGLE, Math.min(MAX_CORD_ANGLE, pointerAngle));
 
-    // Apply to cord string height and handle offset
-    cordString.style.height = (cordBaseHeight + rubberPull) + 'px';
-    cordHandle.style.transform = `translateY(${rubberPull}px)`;
-
-    // The cord pivots from its ceiling anchor. A CSS-positive rotation moves
-    // the bottom of a vertical element to the left, so the angle must be
-    // inverted for the handle to follow the pointer naturally.
-    const cordLength = cordBaseHeight + rubberPull;
-    const pointerAngle = -(Math.atan2(deltaX, cordLength) * 180 / Math.PI);
-    const sway = Math.max(-24, Math.min(24, pointerAngle));
-    pullCordWrap.style.transform = `rotate(${sway}deg)`;
+    cordString.style.height = `${cordLength}px`;
+    cordCurve += ((Math.max(-12, Math.min(12, deltaX * 0.14))) - cordCurve) * 0.38;
+    drawCord(cordLength, cordCurve);
+    pullCordWrap.style.transform = `rotate(${freeAngle}deg)`;
   }
 
-  function cordDragEnd() {
-    if (!cordDragging) return;
+  function cordDragEnd(e, allowToggle = true) {
+    if (!cordDragging || e.pointerId !== activeCordPointerId) return;
+
+    if (cordHandle.hasPointerCapture(e.pointerId)) {
+      cordHandle.releasePointerCapture(e.pointerId);
+    }
+
     cordDragging = false;
+    activeCordPointerId = null;
     pullCordWrap.classList.remove('is-dragging');
     pullCordWrap.classList.add('is-snapping');
 
-    // Snap back
     cordString.style.transition = '';
-    cordHandle.style.transition = '';
     cordString.style.height = '';
-    cordHandle.style.transform = '';
     pullCordWrap.style.transform = '';
+    relaxCordCurve(cordCurve);
 
-    // Did the user pull far enough to toggle?
-    if (cordPullDist >= PULL_THRESHOLD) {
+    if (allowToggle && cordPullDist >= PULL_THRESHOLD) {
       const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       applyTheme(newTheme);
+      playThemeSound(newTheme);
 
       // Burst animation on the celestial orb
       if (celestialOrb) {
@@ -137,15 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (cordHandle) {
-    // Pointer events (mouse)
-    cordHandle.addEventListener('mousedown', cordDragStart);
-    window.addEventListener('mousemove', cordDragMove);
-    window.addEventListener('mouseup', cordDragEnd);
-
-    // Touch events
-    cordHandle.addEventListener('touchstart', cordDragStart, { passive: false });
-    window.addEventListener('touchmove', cordDragMove, { passive: true });
-    window.addEventListener('touchend', cordDragEnd);
+    cordHandle.addEventListener('pointerdown', cordDragStart);
+    cordHandle.addEventListener('pointermove', cordDragMove);
+    cordHandle.addEventListener('pointerup', cordDragEnd);
+    cordHandle.addEventListener('pointercancel', (e) => cordDragEnd(e, false));
 
     // Keyboard: Enter/Space to toggle (no drag needed)
     cordHandle.addEventListener('keydown', (e) => {
@@ -153,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         applyTheme(newTheme);
+        playThemeSound(newTheme);
         if (celestialOrb) {
           celestialOrb.classList.remove('burst');
           void celestialOrb.offsetWidth;
@@ -226,8 +284,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle Download Modal Helper
-  function triggerDownloadHelper() {
+  const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+
+  // Telemetry: Deteksi dan kirim event klik tombol unduh seketika
+  function trackDownloadClick(version, source) {
+    const v = version || 'v1.1.0';
+    const s = source || 'Tombol Unduh';
+    try {
+      const payload = JSON.stringify({ version: v, source: s, timestamp: new Date().toISOString() });
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon('/api/track/download-click', blob);
+      } else {
+        fetch('/api/track/download-click', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('Gagal mencatat klik unduh:', err);
+    }
+  }
+
+  // Handle Download Action: Deteksi tombol ditekan + Tampilkan dialog
+  function handleDownloadAction(version, source) {
+    const v = version || 'v1.1.0';
+    const s = source || 'Tombol Unduh';
+    trackDownloadClick(v, s);
+    showToast('📥 Unduhan terdeteksi: POTER EDUGAMES ' + v + ' (' + s + ')');
     if (downloadModal) {
       setTimeout(() => {
         downloadModal.classList.add('active');
@@ -237,13 +323,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (mainDownloadBtn) {
     mainDownloadBtn.addEventListener('click', () => {
-      triggerDownloadHelper();
+      const version = document.getElementById('specVersion')?.textContent?.trim() || 'v1.1.0';
+      handleDownloadAction(version, 'Tombol Hero Utama');
     });
   }
 
   if (navDownloadBtn) {
     navDownloadBtn.addEventListener('click', () => {
-      triggerDownloadHelper();
+      const version = document.getElementById('specVersion')?.textContent?.trim() || 'v1.1.0';
+      handleDownloadAction(version, 'Navigasi Header');
+    });
+  }
+
+  if (modalDownloadBtn) {
+    modalDownloadBtn.addEventListener('click', () => {
+      const version = document.getElementById('specVersion')?.textContent?.trim() || 'v1.1.0';
+      handleDownloadAction(version, 'Modal Unduh Ulang');
     });
   }
 
@@ -292,188 +387,139 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -----------------------------------------------------------
-  // 3. Interactive 3D Hologram Learning Station
+  // 3. Looping Phone Story
   // -----------------------------------------------------------
-  const holoViewport = document.getElementById('holoViewport');
-  const holoCube = document.getElementById('holoCube');
-  const holoAngleTag = document.getElementById('holoAngleTag');
-  const btnToggleHoloRotation = document.getElementById('btnToggleHoloRotation');
-  const rotationIcon = document.getElementById('rotationIcon');
-  const rotationText = document.getElementById('rotationText');
-  const modeChips = document.querySelectorAll('.chip-mode');
-  const holoModuleName = document.getElementById('holoModuleName');
-  const holoModuleKicker = document.querySelector('.holo-module-kicker');
+  const phoneDemo = document.querySelector('.phone-demo');
+  const phoneDemoScenes = Array.from(document.querySelectorAll('.phone-scene'));
+  const phoneScreen = document.getElementById('phoneScreen');
+  const phoneDemoToggle = document.getElementById('phoneDemoToggle');
+  const phoneDemoControlText = document.getElementById('phoneDemoControlText');
+  const phoneDemoControlIcon = document.getElementById('phoneDemoControlIcon');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const phoneDemoDurations = [1700, 3400, 3000, 2800, 1900];
 
-  let isAutoRotating = true;
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  let rotX = -18;
-  let rotY = 0;
-  let autoAngle = 0;
-  let animFrameId = null;
+  let phoneDemoIndex = 0;
+  let phoneDemoTimer = null;
+  let phoneDemoStartedAt = 0;
+  let phoneDemoRemaining = phoneDemoDurations[0];
+  let phoneDemoPaused = false;
+  let phoneDemoHasStarted = false;
 
-  // Auto-rotation loop tracking real angle (0 to 360)
-  function animateHolo() {
-    if (isAutoRotating && !isDragging) {
-      autoAngle = (autoAngle + 0.6) % 360;
-      rotY = autoAngle;
-      if (holoCube) {
-        holoCube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY.toFixed(1)}deg)`;
-      }
-      if (holoAngleTag) {
-        holoAngleTag.textContent = `Rotasi: ${Math.round(rotY)}° / 360°`;
-      }
-    }
-    animFrameId = requestAnimationFrame(animateHolo);
+  function setPhoneDemoIcon(mode) {
+    if (!phoneDemoControlIcon) return;
+    const path = phoneDemoControlIcon.querySelector('path');
+    if (!path) return;
+    path.setAttribute('d', mode === 'pause' ? 'M9 5v14M15 5v14' : 'm8 5 11 7-11 7z');
   }
-  
-  if (holoCube) {
-    holoCube.style.animation = 'none';
-  }
-  animFrameId = requestAnimationFrame(animateHolo);
 
-  // Play / Pause rotation toggle (Antislop R-19 / R-39 compliance)
-  if (btnToggleHoloRotation) {
-    btnToggleHoloRotation.addEventListener('click', () => {
-      isAutoRotating = !isAutoRotating;
-      if (isAutoRotating) {
-        rotationIcon.textContent = '⏸';
-        rotationText.textContent = 'Jeda Putaran';
-      } else {
-        rotationIcon.textContent = '▶';
-        rotationText.textContent = 'Putar 360°';
-      }
+  function setPhoneDemoScene(index) {
+    phoneDemoIndex = index;
+    const activeSceneName = phoneDemoScenes[index]?.dataset.scene || '';
+    const isBrandScene = activeSceneName === 'splash' || activeSceneName === 'outro';
+
+    phoneScreen?.classList.toggle('is-brand-scene', isBrandScene);
+    phoneScreen?.classList.toggle('is-outro-scene', activeSceneName === 'outro');
+
+    phoneDemoScenes.forEach((scene, sceneIndex) => {
+      const isActive = sceneIndex === index;
+      scene.classList.toggle('is-active', isActive);
+      scene.setAttribute('aria-hidden', String(!isActive));
     });
+
   }
 
-  // Drag / Touch to Rotate in 360 degrees
-  if (holoViewport && holoCube) {
-    function startDrag(clientX, clientY) {
-      isDragging = true;
-      startX = clientX;
-      startY = clientY;
-    }
+  function schedulePhoneDemo() {
+    if (prefersReducedMotion || phoneDemoPaused) return;
 
-    function onDrag(clientX, clientY) {
-      if (!isDragging) return;
-      const deltaX = clientX - startX;
-      const deltaY = clientY - startY;
-
-      rotY = (rotY + deltaX * 0.8) % 360;
-      if (rotY < 0) rotY += 360;
-
-      rotX = Math.max(-50, Math.min(30, rotX - deltaY * 0.4));
-
-      holoCube.style.transform = `rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg)`;
-      autoAngle = rotY;
-
-      if (holoAngleTag) {
-        holoAngleTag.textContent = `Rotasi: ${Math.round(rotY)}° / 360°`;
-      }
-
-      startX = clientX;
-      startY = clientY;
-    }
-
-    function stopDrag() {
-      isDragging = false;
-    }
-
-    // Mouse Drag
-    holoViewport.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
-    window.addEventListener('mousemove', (e) => onDrag(e.clientX, e.clientY));
-    window.addEventListener('mouseup', stopDrag);
-
-    // Touch Drag (Mobile & Tablet)
-    holoViewport.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        startDrag(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: true });
-
-    window.addEventListener('touchmove', (e) => {
-      if (isDragging && e.touches.length === 1) {
-        onDrag(e.touches[0].clientX, e.touches[0].clientY);
-      }
-    }, { passive: true });
-
-    window.addEventListener('touchend', stopDrag);
+    phoneDemoStartedAt = performance.now();
+    phoneDemoTimer = window.setTimeout(() => {
+      const nextIndex = (phoneDemoIndex + 1) % phoneDemoScenes.length;
+      setPhoneDemoScene(nextIndex);
+      phoneDemoRemaining = phoneDemoDurations[nextIndex];
+      schedulePhoneDemo();
+    }, phoneDemoRemaining);
   }
 
-  // Hologram Mode Switcher (Dynamic Educational Themes)
-  const hologramThemes = {
-    spasial: {
-      label: 'Eksplorasi Spasial',
-      code: 'CORE 01',
-      items: [
-      { icon: '🧊', title: 'Spasial 3D', sub: 'Nalar Geometri' },
-      { icon: '🧩', title: 'Teka-Teki', sub: 'Susun Balok' },
-      { icon: '📐', title: 'Sudut Ruang', sub: 'Perspektif Anak' },
-      { icon: '📦', title: 'Rapikan!', sub: 'Klasifikasi Objek' },
-      { icon: '🎨', title: 'Warna Bentuk', sub: 'Koordinasi Visual' },
-      { icon: '💎', title: 'Kristal Nalar', sub: 'Eksplorasi Bentuk' }
-      ]
-    },
-    sains: {
-      label: 'Laboratorium Sains',
-      code: 'CORE 02',
-      items: [
-      { icon: '🪐', title: 'Tata Surya', sub: 'Orbit Planet' },
-      { icon: '🌍', title: 'Bumi & Alam', sub: 'Sains Geografi' },
-      { icon: '🔬', title: 'Molekul Mikro', sub: 'Struktur Dasar' },
-      { icon: '☀️', title: 'Energi Surya', sub: 'Sumber Kehidupan' },
-      { icon: '🌱', title: 'Tumbuh Kembang', sub: 'Biologi Anak' },
-      { icon: '🚀', title: 'Antariksa', sub: 'Fisika Sederhana' }
-      ]
-    },
-    logika: {
-      label: 'Mesin Logika',
-      code: 'CORE 03',
-      items: [
-      { icon: '🧠', title: 'Logika Nalar', sub: 'Analisis Masalah' },
-      { icon: '🔢', title: 'Pola Angka', sub: 'Matematika Riang' },
-      { icon: '⚖️', title: 'Timbangan', sub: 'Bandingkan Berat' },
-      { icon: '🚗', title: 'Buka Jalan', sub: 'Strategi Berpikir' },
-      { icon: '💡', title: 'Daya Ingat', sub: 'Konsentrasi' },
-      { icon: '🎯', title: 'Ketelitian', sub: 'Fokus Visual' }
-      ]
+  function startPhoneDemo() {
+    window.clearTimeout(phoneDemoTimer);
+    phoneDemoIndex = 0;
+    phoneDemoRemaining = phoneDemoDurations[0];
+    phoneDemoPaused = false;
+    phoneDemoHasStarted = true;
+    phoneDemo?.classList.remove('is-paused');
+    setPhoneDemoScene(0);
+
+    if (phoneDemoControlText) phoneDemoControlText.textContent = 'Jeda animasi';
+    if (phoneDemoToggle) {
+      phoneDemoToggle.setAttribute('aria-label', 'Jeda animasi POTER');
     }
-  };
+    setPhoneDemoIcon('pause');
+    schedulePhoneDemo();
+  }
 
-  modeChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      modeChips.forEach(c => c.classList.remove('active'));
-      modeChips.forEach(c => c.setAttribute('aria-selected', 'false'));
-      chip.classList.add('active');
-      chip.setAttribute('aria-selected', 'true');
+  function pausePhoneDemo() {
+    if (!phoneDemoTimer) return;
 
-      const mode = chip.getAttribute('data-mode');
-      const themeData = hologramThemes[mode];
-      if (!themeData) return;
+    const elapsed = performance.now() - phoneDemoStartedAt;
+    phoneDemoRemaining = Math.max(0, phoneDemoRemaining - elapsed);
+    window.clearTimeout(phoneDemoTimer);
+    phoneDemoTimer = null;
+    phoneDemoPaused = true;
+    phoneDemo?.classList.add('is-paused');
 
-      holoViewport.dataset.mode = mode;
-      if (holoModuleName) holoModuleName.textContent = themeData.label;
-      if (holoModuleKicker) holoModuleKicker.textContent = `MODUL AKTIF · ${themeData.code}`;
+    if (phoneDemoControlText) phoneDemoControlText.textContent = 'Lanjutkan animasi';
+    if (phoneDemoToggle) {
+      phoneDemoToggle.setAttribute('aria-label', 'Lanjutkan animasi POTER');
+    }
+    setPhoneDemoIcon('play');
+  }
 
-      const faces = holoCube.querySelectorAll('.holo-face');
-      faces.forEach((face, idx) => {
-        if (themeData.items[idx]) {
-          const iconEl = face.querySelector('.holo-face-icon');
-          const codeEl = face.querySelector('.holo-face-code');
-          const titleEl = face.querySelector('.holo-face-title');
-          const subEl = face.querySelector('.holo-face-sub');
-          if (iconEl) iconEl.textContent = themeData.items[idx].icon;
-          if (codeEl) codeEl.textContent = `${String(idx + 1).padStart(2, '0')} · ${mode.toUpperCase()}`;
-          if (titleEl) titleEl.textContent = themeData.items[idx].title;
-          if (subEl) subEl.textContent = themeData.items[idx].sub;
+  function resumePhoneDemo() {
+    phoneDemoPaused = false;
+    phoneDemo?.classList.remove('is-paused');
+
+    if (phoneDemoControlText) phoneDemoControlText.textContent = 'Jeda animasi';
+    if (phoneDemoToggle) {
+      phoneDemoToggle.setAttribute('aria-label', 'Jeda animasi POTER');
+    }
+    setPhoneDemoIcon('pause');
+    schedulePhoneDemo();
+  }
+
+  if (phoneDemoScenes.length > 0) {
+    setPhoneDemoScene(prefersReducedMotion ? 1 : 0);
+
+    if (prefersReducedMotion) {
+      if (phoneDemoControlText) phoneDemoControlText.textContent = 'Tampilan Berikutnya';
+      if (phoneDemoToggle) phoneDemoToggle.setAttribute('aria-label', 'Lihat tampilan aplikasi berikutnya');
+      setPhoneDemoIcon('play');
+    } else if ('IntersectionObserver' in window && phoneDemo) {
+      const phoneDemoObserver = new IntersectionObserver((entries, observer) => {
+        if (entries.some(entry => entry.isIntersecting) && !phoneDemoHasStarted) {
+          startPhoneDemo();
+          observer.disconnect();
         }
-      });
+      }, { threshold: 0.35 });
+      phoneDemoObserver.observe(phoneDemo);
+    } else {
+      startPhoneDemo();
+    }
+  }
 
-      holoCube.classList.remove('is-switching');
-      void holoCube.offsetWidth;
-      holoCube.classList.add('is-switching');
-    });
+  phoneDemoToggle?.addEventListener('click', () => {
+    if (prefersReducedMotion) {
+      const nextIndex = (phoneDemoIndex + 1) % phoneDemoScenes.length;
+      setPhoneDemoScene(nextIndex);
+      return;
+    }
+
+    if (!phoneDemoHasStarted) {
+      startPhoneDemo();
+    } else if (phoneDemoPaused) {
+      resumePhoneDemo();
+    } else {
+      pausePhoneDemo();
+    }
   });
 
   // -----------------------------------------------------------
@@ -487,18 +533,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('versionsContainer');
         if (!container) return;
 
-        const latest = json.data.find(v => v.is_latest) || json.data[0];
-        if (latest) {
+        const enabledVersions = json.data.filter(v => v.download_enabled !== 0);
+        const latest = enabledVersions.find(v => v.is_latest === 1) || enabledVersions[0] || null;
+        const displayVersion = latest || json.data.find(v => v.is_latest === 1) || json.data[0];
+        if (displayVersion) {
           const specVersion = document.getElementById('specVersion');
           const specSize = document.getElementById('specSize');
           const specDate = document.getElementById('specDate');
-          if (specVersion) specVersion.textContent = latest.version_code;
-          if (specSize) specSize.textContent = latest.file_size;
-          if (specDate) specDate.textContent = latest.release_date;
+          if (specVersion) specVersion.textContent = displayVersion.version_code;
+          if (specSize) specSize.textContent = displayVersion.file_size;
+          if (specDate) specDate.textContent = displayVersion.release_date;
         }
+
+        [mainDownloadBtn, navDownloadBtn, modalDownloadBtn].forEach(button => {
+          if (!button) return;
+          const label = button.querySelector('.download-button-label');
+          if (label && !label.dataset.enabledLabel) label.dataset.enabledLabel = label.textContent.trim();
+          if (latest) {
+            button.href = `/download/${latest.version_code}`;
+            button.classList.remove('download-disabled');
+            button.removeAttribute('aria-disabled');
+            button.removeAttribute('tabindex');
+            if (label) label.textContent = label.dataset.enabledLabel;
+          } else {
+            button.removeAttribute('href');
+            button.classList.add('download-disabled');
+            button.setAttribute('aria-disabled', 'true');
+            button.setAttribute('tabindex', '-1');
+            if (label) label.textContent = 'Unduhan Tidak Tersedia';
+          }
+        });
 
         container.innerHTML = json.data.map(v => {
           const isLatest = v.is_latest === 1;
+          const downloadEnabled = v.download_enabled !== 0;
           const changelogItems = (v.changelog || []).map(item => `<li>${item}</li>`).join('');
           
           return `
@@ -507,6 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="version-header-line">
                   <span class="version-number">${v.version_code}</span>
                   ${isLatest ? '<span class="version-badge-rec">TERBARU - DIREKOMENDASIKAN</span>' : ''}
+                  ${!downloadEnabled ? '<span class="version-badge-off">UNDUHAN NONAKTIF</span>' : ''}
                 </div>
                 <div class="version-meta">
                   ${v.release_date} • ${v.file_size} • ${v.min_android}
@@ -515,16 +584,18 @@ document.addEventListener('DOMContentLoaded', () => {
                   ${changelogItems}
                 </ul>
               </div>
-              <a href="/download/${v.version_code}" class="btn-version-unduh ${isLatest ? '' : 'secondary'}">
-                Unduh ${v.version_code}
-              </a>
+              ${downloadEnabled
+                ? `<a href="/download/${v.version_code}" class="btn-version-unduh ${isLatest ? '' : 'secondary'}">Unduh ${v.version_code}</a>`
+                : '<span class="btn-version-unduh is-disabled" aria-label="Unduhan versi ini dinonaktifkan">Tidak tersedia</span>'}
             </div>
           `;
         }).join('');
 
-        container.querySelectorAll('.btn-version-unduh').forEach(btn => {
+        container.querySelectorAll('a.btn-version-unduh').forEach(btn => {
           btn.addEventListener('click', () => {
-            triggerDownloadHelper();
+            const href = btn.getAttribute('href') || '';
+            const ver = href.split('/').pop() || 'v1.1.0';
+            handleDownloadAction(ver, 'Daftar Versi: ' + ver);
           });
         });
       }

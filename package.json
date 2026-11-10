@@ -2,11 +2,15 @@
   "name": "poter-edugames",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check database.js && node --check public/js/main.js && node --check public/js/admin.js",
+    "check": "node --check server.js && node --check database.js && node --check scripts/migrate-sqlite-to-neon.js && node --check public/js/main.js && node --check public/js/admin.js",
+    "migrate:neon": "node scripts/migrate-sqlite-to-neon.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +20,7 @@
     "better-sqlite3": "^13.0.3",
     "cookie-parser": "^1.4.7",
     "express": "^5.3.0",
+    "pg": "^8.23.1",
     "qrcode": "^1.5.4"
   }
 }

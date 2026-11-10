@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Pemantau Distribusi APK - POTER EDUGAMES</title>
   <link rel="stylesheet" href="/css/admin.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231D4ED8'/><text x='50%' y='65%' font-size='60' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
+  <link rel="icon" type="image/png" href="/assets/poter-logo.png">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="admin-body">
@@ -13,7 +13,7 @@
   <!-- Admin Top Navbar -->
   <header class="admin-navbar">
     <div class="admin-nav-brand">
-      <div class="admin-brand-mark">P</div>
+      <span class="admin-brand-mark"><img src="/assets/poter-logo.png" width="40" height="40" alt="" aria-hidden="true"></span>
       <div>
         <strong class="admin-brand-name">POTER EDUGAMES</strong>
         <span class="admin-brand-subtitle">Dashboard Distribusi & Audit</span>
@@ -385,8 +385,8 @@
     <!-- TAB 5: VERSION MANAGER -->
     <section id="tab-versions" class="tab-content" style="display: none;" role="tabpanel">
       <div class="table-card">
-        <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">Tambah Rilis Versi APK Baru</h2>
-        <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin-bottom: 24px;">Tambahkan versi game edukasi baru yang langsung tampil di portal unduh publik.</p>
+        <h2 id="versionFormTitle" style="font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">Tambah Rilis Versi APK Baru</h2>
+        <p id="versionFormDescription" style="font-size: 0.85rem; color: var(--admin-text-muted); margin-bottom: 24px;">Tambahkan versi game edukasi baru yang langsung tampil di portal unduh publik.</p>
 
         <form id="addVersionForm">
           <div class="form-grid">
@@ -398,6 +398,12 @@
             <div class="form-group">
               <label for="newFileSize">Ukuran Berkas (Contoh: 64.5 MB)</label>
               <input type="text" id="newFileSize" placeholder="64.5 MB" required />
+            </div>
+
+            <div class="form-group full-width">
+              <label for="newDownloadUrl">URL APK Vercel Blob</label>
+              <input type="url" id="newDownloadUrl" placeholder="https://...public.blob.vercel-storage.com/POTER-EDUGAMES.apk" />
+              <small>Biarkan kosong sampai APK asli selesai diunggah. Unduhan tidak akan diaktifkan tanpa URL ini.</small>
             </div>
 
             <div class="form-group">
@@ -421,18 +427,30 @@
                 Jadikan sebagai Versi Utama & Direkomendasikan
               </label>
             </div>
+
+            <div class="form-group full-width">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="newDownloadEnabled" checked />
+                Aktifkan unduhan setelah versi disimpan
+              </label>
+            </div>
           </div>
 
-          <button type="submit" class="btn-submit-version" id="btnSaveVersion">
-            Simpan & Publikasikan Versi Baru
-          </button>
+          <div class="version-form-actions">
+            <button type="submit" class="btn-submit-version" id="btnSaveVersion">
+              Simpan & Publikasikan Versi Baru
+            </button>
+            <button type="button" class="btn-cancel-version-edit" id="btnCancelVersionEdit" hidden>
+              Batal Edit
+            </button>
+          </div>
         </form>
       </div>
 
       <div class="table-card">
         <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 16px;">Daftar Versi APK yang Tersedia</h3>
         <div class="data-table-wrap">
-          <table class="data-table">
+          <table class="data-table version-management-table">
             <thead>
               <tr>
                 <th>Nomor Versi</th>
@@ -440,17 +458,47 @@
                 <th>Ukuran</th>
                 <th>Unduhan Terhitung</th>
                 <th>Status</th>
+                <th>Akses Unduhan</th>
                 <th>Tindakan</th>
               </tr>
             </thead>
             <tbody id="versionTableBody">
               <tr>
-                <td colspan="6" style="text-align: center; padding: 24px;">Memuat daftar versi...</td>
+                <td colspan="7" style="text-align: center; padding: 24px;">Memuat daftar versi...</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
+      <details class="version-trash-card" id="versionTrashPanel">
+        <summary>
+          <span>
+            <strong>Sampah Versi</strong>
+            <small>Versi di sini tidak tampil dan tidak bisa diunduh.</small>
+          </span>
+          <span class="trash-count" id="versionTrashCount">0</span>
+        </summary>
+        <div class="version-trash-content">
+          <div class="data-table-wrap">
+            <table class="data-table version-trash-table">
+              <thead>
+                <tr>
+                  <th>Nomor Versi</th>
+                  <th>Tanggal Rilis</th>
+                  <th>Dipindahkan</th>
+                  <th>Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="versionTrashTableBody">
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 24px;">Memuat sampah...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
     </section>
 
     <!-- TAB 6: TELEMETRY DOCS -->

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Masuk Dashboard Pemantau - POTER EDUGAMES</title>
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231D4ED8'/><text x='50%' y='65%' font-size='60' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
+  <link rel="icon" type="image/png" href="/assets/poter-logo.png">
   <style>
     body {
       background-color: #F8FAFC;
@@ -32,14 +32,19 @@
       width: 54px;
       height: 54px;
       border-radius: 14px;
-      background-color: var(--primary);
-      color: #FFFFFF;
+      background-color: #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
-      font-weight: 800;
       margin: 0 auto 14px auto;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+      overflow: hidden;
+    }
+    .login-brand-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
     }
     .login-title {
       font-size: 1.45rem;
@@ -132,7 +137,7 @@
 
   <div class="login-card">
     <div class="login-header">
-      <div class="login-brand-icon">P</div>
+      <div class="login-brand-icon"><img src="/assets/poter-logo.png" width="54" height="54" alt="Logo POTER Edugames"></div>
       <h1 class="login-title">Dashboard Pemantau</h1>
       <p class="login-desc">Masuk untuk memantau trafik web, unduhan APK, dan telemetri perangkat.</p>
     </div>

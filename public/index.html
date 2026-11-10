@@ -1,18 +1,29 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-surface="glass">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Unduh POTER EDUGAMES - Game Edukasi Anak PAUD & SD Resmi</title>
-  <meta name="description" content="Unduh berkas resmi APK POTER EDUGAMES untuk Android. Game edukasi 2D & teknologi hologram interaktif untuk melatih nalar, logika, dan ketelitian anak.">
+  <meta name="description" content="Unduh berkas resmi APK POTER EDUGAMES untuk Android. Game edukasi interaktif untuk melatih nalar, logika, ketelitian, dan daya spasial anak.">
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231D4ED8'/><text x='50%' y='65%' font-size='60' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
+  <link rel="icon" type="image/png" href="/assets/poter-logo.png">
 </head>
 <body>
 
   <!-- Interactive Pull-Cord Day/Night Switch (Tali Benang Gantung Pengubah Tema) -->
   <div class="pull-cord-wrap" id="pullCordWrap" role="region" aria-label="Saklar Tema Siang dan Malam">
-    <div class="cord-string" id="cordString"></div>
+    <svg class="cord-string" id="cordString" viewBox="0 0 32 88" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="cordFiberGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#334155"></stop>
+          <stop offset="0.45" stop-color="#64748B"></stop>
+          <stop offset="1" stop-color="#075985"></stop>
+        </linearGradient>
+      </defs>
+      <path class="cord-thread-shadow" id="cordThreadShadow" d="M16 0 Q16 44 16 88"></path>
+      <path class="cord-thread-main" id="cordThread" d="M16 0 Q16 44 16 88"></path>
+      <path class="cord-thread-fiber" id="cordThreadFiber" d="M16 0 Q16 44 16 88"></path>
+    </svg>
     <div class="cord-handle" id="cordHandle" role="button" tabindex="0" aria-label="Tarik tali untuk mengubah tema siang atau malam" title="Tarik tali untuk ganti tema (Siang / Malam)">
       <div class="celestial-orb" id="celestialOrb">
         <!-- Sun for Daytime -->
@@ -47,14 +58,16 @@
   <header class="site-header">
     <div class="container nav-wrap">
       <a href="/" class="brand-logo" aria-label="POTER EDUGAMES Beranda">
-        <div class="brand-mark">P</div>
+        <span class="brand-mark">
+          <img src="/assets/poter-logo.png" width="42" height="42" alt="" aria-hidden="true">
+        </span>
         <div class="brand-text">
           <h1>POTER EDUGAMES</h1>
           <span>by PT Poter Teknik Nusantara</span>
         </div>
       </a>
       <nav class="nav-links" aria-label="Navigasi Utama">
-        <a href="#hologram-station" class="nav-link">Teknologi 3D</a>
+        <a href="#app-preview" class="nav-link">Demo Aplikasi</a>
         <a href="#permainan" class="nav-link">Game</a>
         <a href="#versi" class="nav-link">Versi</a>
         <a href="#cara-pasang" class="nav-link">Cara Pasang</a>
@@ -65,7 +78,7 @@
             <polyline points="7 10 12 15 17 10"></polyline>
             <path d="M5 21h14"></path>
           </svg>
-          <span>Unduh APK</span>
+          <span class="download-button-label">Unduh APK</span>
         </a>
       </nav>
     </div>
@@ -86,7 +99,7 @@
           </h1>
 
           <p class="hero-desc">
-            Game edukasi interaktif dengan teknologi penalaran visual dan hologram 3D untuk melatih logika, ketelitian, dan daya spasial anak usia PAUD hingga SD.
+            Game edukasi interaktif dengan latihan visual yang membantu anak mengasah logika, ketelitian, dan daya spasial dari usia PAUD hingga SD.
           </p>
 
           <div class="specs-grid" id="heroSpecs">
@@ -115,7 +128,7 @@
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
               </svg>
-              Unduh APK Sekarang
+              <span class="download-button-label">Unduh APK Sekarang</span>
             </a>
 
             <div class="secondary-actions">
@@ -158,96 +171,116 @@
           </p>
         </div>
 
-        <!-- 3D Holographic Learning Station (Centerpiece Glass Projector) -->
-        <div class="hero-visual" id="hologram-station">
-          <div class="hologram-stage-card" aria-label="Stasiun Hologram Edukasi 3D Interaktif">
-            
-            <div class="hologram-top-hud">
-              <div class="holo-pill-badge">
-                <span class="dot"></span>
-                Hologram Edukasi 3D
-              </div>
-              <div class="holo-telemetry-tag" id="holoAngleTag">Rotasi: 0° / 360°</div>
-            </div>
+        <div class="hero-visual" id="app-preview">
+          <section class="phone-demo" aria-label="Animasi anak belajar dengan pendampingan orang tua di POTER Edugames">
+            <div class="phone-stage">
+              <div class="phone-shell" aria-label="Cerita singkat POTER Edugames di dalam ponsel">
+                <div class="phone-speaker" aria-hidden="true"></div>
+                <div class="phone-screen is-brand-scene" id="phoneScreen">
+                  <div class="phone-brand-mark" aria-hidden="true">
+                    <span class="phone-brand-ring"></span>
+                    <img class="phone-brand-logo" src="/assets/poter-logo.png" width="116" height="116" alt="">
+                  </div>
 
-            <!-- Viewport 3D Hologram -->
-            <div class="hologram-viewport" id="holoViewport" data-mode="spasial" title="Geser dengan mouse/jari untuk memutar 360 derajat">
-              <div class="holo-space-grid" aria-hidden="true"></div>
-              <div class="holo-projection-beam" aria-hidden="true"></div>
+                  <div class="phone-scene scene-splash brand-scene is-active" data-scene="splash" aria-hidden="false">
+                    <div class="brand-scene-copy">
+                      <strong>POTER EDUGAMES</strong>
+                      <span>Belajar sambil bermain</span>
+                      <div class="splash-loader" aria-hidden="true"><i></i></div>
+                    </div>
+                  </div>
 
-              <div class="holo-module-status" aria-live="polite">
-                <span class="holo-module-kicker">MODUL AKTIF · CORE 01</span>
-                <strong id="holoModuleName">Eksplorasi Spasial</strong>
-              </div>
-              <span class="holo-drag-hint" aria-hidden="true">DRAG · 360°</span>
+                  <div class="phone-scene scene-family" data-scene="family" aria-hidden="true">
+                    <div class="story-copy">
+                      <span>Waktu belajar bersama</span>
+                      <strong>Anak bermain, orang tua tetap mendampingi</strong>
+                    </div>
+                    <div class="family-illustration" aria-hidden="true">
+                      <svg class="family-silhouette" viewBox="0 0 220 250" focusable="false">
+                        <circle class="scene-sun" cx="181" cy="43" r="24"></circle>
+                        <ellipse class="scene-rug" cx="110" cy="221" rx="91" ry="22"></ellipse>
+                        <g class="silhouette-child">
+                          <circle cx="63" cy="108" r="20"></circle>
+                          <path d="M43 139c4-16 13-24 25-24 16 0 27 13 27 34v54H39l4-64Z"></path>
+                          <path class="silhouette-limb" d="M80 145c13 1 22 7 29 18"></path>
+                        </g>
+                        <g class="silhouette-parent">
+                          <circle cx="161" cy="73" r="24"></circle>
+                          <path d="M137 112c5-17 17-27 31-27 19 0 33 16 35 42l4 76h-59l-5-57-19 14-12-20 25-28Z"></path>
+                          <path class="silhouette-limb parent-guiding-arm" d="M150 122c-13 7-25 16-38 24"></path>
+                        </g>
+                        <g class="silhouette-device">
+                          <rect x="98" y="151" width="34" height="54" rx="7" transform="rotate(-8 115 178)"></rect>
+                          <rect class="device-screen" x="104" y="157" width="22" height="39" rx="3" transform="rotate(-8 115 178)"></rect>
+                        </g>
+                      </svg>
+                    </div>
+                    <p class="story-note">Dekat saat dibutuhkan, memberi ruang saat anak mencoba.</p>
+                  </div>
 
-              <!-- Concentric Projector Rings -->
-              <div class="hologram-emitter-base" aria-hidden="true"></div>
-              <div class="hologram-emitter-inner" aria-hidden="true"></div>
-              <div class="holo-orbit-ring" aria-hidden="true"></div>
+                  <div class="phone-scene scene-matching" data-scene="matching" aria-hidden="true">
+                    <div class="game-scene-heading">
+                      <span>Pasangkan</span>
+                      <strong>Temukan dua gambar yang sama</strong>
+                    </div>
+                    <div class="match-board" aria-hidden="true">
+                      <div class="match-card"><i class="shape-circle"></i></div>
+                      <div class="match-card"><i class="shape-triangle"></i></div>
+                      <div class="match-card"><i class="shape-circle"></i></div>
+                      <div class="match-card"><i class="shape-triangle"></i></div>
+                      <span class="play-finger"></span>
+                    </div>
+                    <div class="game-feedback">Pasangan ditemukan</div>
+                  </div>
 
-              <!-- 3D Learning Core -->
-              <div class="holo-3d-scene" id="holoScene">
-                <div class="holo-cube" id="holoCube">
-                  <div class="holo-face face-front">
-                    <span class="holo-face-code">01 · SPATIAL</span>
-                    <span class="holo-face-icon" aria-hidden="true">🧊</span>
-                    <span class="holo-face-title">Spasial 3D</span>
-                    <span class="holo-face-sub">Nalar Geometri</span>
+                  <div class="phone-scene scene-celebrate" data-scene="celebrate" aria-hidden="true">
+                    <div class="story-copy celebration-copy">
+                      <span>Selesai bersama</span>
+                      <strong>Usaha anak mendapat respons positif</strong>
+                    </div>
+                    <div class="celebration-illustration" aria-hidden="true">
+                      <svg class="celebration-silhouette" viewBox="0 0 220 270" focusable="false">
+                        <g class="success-symbol">
+                          <circle cx="110" cy="48" r="31"></circle>
+                          <path d="m95 48 10 11 22-25"></path>
+                        </g>
+                        <ellipse class="scene-rug" cx="110" cy="241" rx="90" ry="19"></ellipse>
+                        <g class="silhouette-child celebrate-child-shape">
+                          <circle cx="61" cy="143" r="20"></circle>
+                          <path d="M39 178c2-18 12-28 27-28 17 0 28 13 28 34v46H38l1-52Z"></path>
+                          <path class="silhouette-limb child-high-five-arm" d="M78 171c11-22 19-35 30-47"></path>
+                        </g>
+                        <g class="silhouette-parent celebrate-parent-shape">
+                          <circle cx="163" cy="120" r="24"></circle>
+                          <path d="M137 158c5-20 17-31 33-31 20 0 34 17 35 45l2 58h-60l-10-72Z"></path>
+                          <path class="silhouette-limb parent-high-five-arm" d="M148 152c-11-17-19-27-30-35"></path>
+                        </g>
+                        <g class="high-five-spark">
+                          <path d="M112 103v-12M101 108l-9-8M123 108l9-8"></path>
+                        </g>
+                      </svg>
+                    </div>
+                    <p class="story-note">Hebat, kamu sudah mencoba!</p>
                   </div>
-                  <div class="holo-face face-back">
-                    <span class="holo-face-code">02 · SPATIAL</span>
-                    <span class="holo-face-icon" aria-hidden="true">🧩</span>
-                    <span class="holo-face-title">Teka-Teki</span>
-                    <span class="holo-face-sub">Susun Balok</span>
-                  </div>
-                  <div class="holo-face face-right">
-                    <span class="holo-face-code">03 · SPATIAL</span>
-                    <span class="holo-face-icon" aria-hidden="true">📐</span>
-                    <span class="holo-face-title">Sudut Ruang</span>
-                    <span class="holo-face-sub">Perspektif Anak</span>
-                  </div>
-                  <div class="holo-face face-left">
-                    <span class="holo-face-code">04 · SPATIAL</span>
-                    <span class="holo-face-icon" aria-hidden="true">📦</span>
-                    <span class="holo-face-title">Rapikan!</span>
-                    <span class="holo-face-sub">Klasifikasi Objek</span>
-                  </div>
-                  <div class="holo-face face-top">
-                    <span class="holo-face-code">05 · SPATIAL</span>
-                    <span class="holo-face-icon" aria-hidden="true">🎨</span>
-                    <span class="holo-face-title">Warna Bentuk</span>
-                    <span class="holo-face-sub">Koordinasi Visual</span>
-                  </div>
-                  <div class="holo-face face-bottom">
-                    <span class="holo-face-code">06 · SPATIAL</span>
-                    <span class="holo-face-icon" aria-hidden="true">💎</span>
-                    <span class="holo-face-title">Kristal Nalar</span>
-                    <span class="holo-face-sub">Eksplorasi Bentuk</span>
+
+                  <div class="phone-scene scene-outro brand-scene" data-scene="outro" aria-hidden="true">
+                    <div class="brand-scene-copy">
+                      <strong>POTER</strong>
+                      <span>Teman tumbuh anak</span>
+                    </div>
                   </div>
                 </div>
+                <div class="phone-home-indicator" aria-hidden="true"></div>
               </div>
             </div>
 
-            <!-- Hologram Controls -->
-            <div class="hologram-controls">
-              <button type="button" class="btn-holo-control" id="btnToggleHoloRotation" aria-label="Jeda atau lanjutkan putaran 360 derajat">
-                <span id="rotationIcon">⏸</span>
-                <span id="rotationText">Jeda Putaran</span>
-              </button>
-
-              <div class="holo-mode-chips" role="tablist" aria-label="Ganti Modul 3D">
-                <button type="button" class="chip-mode active" data-mode="spasial" role="tab" aria-selected="true">Spasial 3D</button>
-                <button type="button" class="chip-mode" data-mode="sains" role="tab" aria-selected="false">Sains 3D</button>
-                <button type="button" class="chip-mode" data-mode="logika" role="tab" aria-selected="false">Logika</button>
-              </div>
-            </div>
-
-            <p class="holo-caption">
-              ✨ Sentuh dan geser hologram di atas untuk memutar sudut pandang 360°.
-            </p>
-
-          </div>
+            <button type="button" class="btn-demo-control" id="phoneDemoToggle" aria-label="Jeda animasi POTER">
+              <svg id="phoneDemoControlIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 5v14M15 5v14"></path>
+              </svg>
+              <span id="phoneDemoControlText">Jeda animasi</span>
+            </button>
+          </section>
         </div>
       </div>
     </section>
@@ -465,7 +498,9 @@
   <footer class="site-footer">
     <div class="container footer-wrap">
       <div class="brand-logo">
-        <div class="brand-mark" style="width: 32px; height: 32px; font-size: 0.95rem;">P</div>
+        <span class="brand-mark brand-mark-footer">
+          <img src="/assets/poter-logo.png" width="32" height="32" alt="" aria-hidden="true">
+        </span>
         <div class="brand-text">
           <strong style="font-size: 0.95rem; color: var(--text-main);">POTER EDUGAMES</strong>
         </div>
@@ -516,8 +551,8 @@
         </ol>
       </div>
 
-      <a href="/download" class="btn-primary-download" style="max-width: 100%; font-size: 0.95rem; padding: 12px 20px; min-height: 44px;">
-        Unduh Ulang Berkas APK
+      <a href="/download" id="modalDownloadBtn" class="btn-primary-download" style="max-width: 100%; font-size: 0.95rem; padding: 12px 20px; min-height: 44px;">
+        <span class="download-button-label">Unduh Ulang Berkas APK</span>
       </a>
     </div>
   </div>

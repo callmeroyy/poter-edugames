@@ -13,6 +13,16 @@
   --admin-danger: #DC2626;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
 body.admin-body {
   background-color: var(--admin-bg);
   color: var(--admin-text-main);
@@ -27,7 +37,7 @@ body.admin-body {
   background: linear-gradient(120deg, #0B1220 0%, #111D35 62%, #0E2740 100%);
   color: #FFFFFF;
   padding: 0 28px;
-  min-height: 72px;
+  min-height: 76px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -45,16 +55,19 @@ body.admin-body {
 }
 
 .admin-brand-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #2563EB, #0EA5E9);
-  color: #FFFFFF;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
   display: grid;
   place-items: center;
-  font-size: 1.05rem;
-  font-weight: 900;
-  box-shadow: 0 6px 18px rgba(14, 165, 233, 0.28);
+  filter: drop-shadow(0 5px 9px rgba(14, 165, 233, 0.26));
+}
+
+.admin-brand-mark img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  object-position: center;
 }
 
 .admin-brand-name {
@@ -460,6 +473,185 @@ body.admin-body {
   background-color: #F8FAFC;
 }
 
+.version-download-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #991B1B;
+  padding: 4px 2px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.version-download-toggle.is-enabled {
+  color: #166534;
+}
+
+.version-download-toggle:focus-visible {
+  outline: 3px solid #1D4ED8;
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.version-download-toggle:hover:not(:disabled) .version-toggle-track {
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.22), 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.version-download-toggle:active:not(:disabled) .version-toggle-track {
+  transform: scale(0.96);
+}
+
+.version-download-toggle:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.version-toggle-track {
+  width: 42px;
+  height: 24px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #64748B;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.14);
+  transition: background-color 0.16s ease;
+  flex: 0 0 auto;
+}
+
+.version-toggle-track span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.3);
+  transition: transform 0.16s ease;
+}
+
+.version-download-toggle.is-enabled .version-toggle-track {
+  background: #16A34A;
+}
+
+.version-download-toggle.is-enabled .version-toggle-track span {
+  transform: translateX(18px);
+}
+
+.version-code-cell {
+  font-size: 1rem;
+}
+
+.version-download-count {
+  color: #1D4ED8;
+}
+
+.version-status-main,
+.version-status-archive {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.version-status-main {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.version-status-archive {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.version-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 250px;
+}
+
+.btn-version-action,
+.btn-cancel-version-edit {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 7px;
+  background: #FFFFFF;
+  color: #334155;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+}
+
+.btn-version-action:hover,
+.btn-cancel-version-edit:hover {
+  background: #F1F5F9;
+  border-color: #94A3B8;
+}
+
+.btn-version-action:active,
+.btn-cancel-version-edit:active {
+  transform: translateY(1px);
+}
+
+.btn-version-action:focus-visible,
+.btn-cancel-version-edit:focus-visible,
+.version-trash-card summary:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.32);
+  outline-offset: 2px;
+}
+
+.btn-version-action.edit {
+  border-color: #93C5FD;
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.btn-version-action.primary {
+  border-color: #1D4ED8;
+  background: #1D4ED8;
+  color: #FFFFFF;
+}
+
+.btn-version-action.primary:hover {
+  background: #1E40AF;
+  border-color: #1E40AF;
+}
+
+.btn-version-action.trash {
+  border-color: #FCA5A5;
+  background: #FFF7F7;
+  color: #B91C1C;
+}
+
+.btn-version-action.trash:hover {
+  background: #FEE2E2;
+  border-color: #F87171;
+}
+
+.btn-version-action.restore {
+  border-color: #86EFAC;
+  background: #F0FDF4;
+  color: #166534;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .version-toggle-track,
+  .version-toggle-track span {
+    transition: none;
+  }
+}
+
 .badge-device {
   display: inline-block;
   padding: 3px 8px;
@@ -597,6 +789,78 @@ body.admin-body {
   background-color: var(--admin-primary-hover);
 }
 
+.version-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-trash-card {
+  margin-top: 22px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: #FFFFFF;
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+}
+
+.version-trash-card summary {
+  min-height: 72px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--admin-text-main);
+}
+
+.version-trash-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.version-trash-card summary:hover {
+  background: #F8FAFC;
+}
+
+.version-trash-card summary span:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.version-trash-card summary small {
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.trash-count {
+  min-width: 30px;
+  min-height: 30px;
+  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: #FEE2E2;
+  color: #991B1B;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.version-trash-content {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.version-trash-empty {
+  padding: 28px 16px !important;
+  text-align: center;
+  color: var(--admin-text-muted) !important;
+}
+
 /* Telemetry Code Box */
 .code-box {
   background-color: #0F172A;
@@ -662,7 +926,7 @@ body.admin-body {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   .admin-main {
     padding: 16px;
   }
@@ -684,5 +948,80 @@ body.admin-body {
 
   .table-card {
     padding: 18px;
+  }
+
+  .version-form-actions,
+  .version-form-actions button {
+    width: 100%;
+  }
+
+  .version-trash-card summary {
+    padding: 14px 16px;
+  }
+
+  .version-trash-content {
+    padding: 0 14px 14px;
+  }
+
+  .version-management-table thead,
+  .version-trash-table thead {
+    display: none;
+  }
+
+  .version-management-table,
+  .version-management-table tbody,
+  .version-management-table tr,
+  .version-management-table td,
+  .version-trash-table,
+  .version-trash-table tbody,
+  .version-trash-table tr,
+  .version-trash-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .version-management-table tr,
+  .version-trash-table tr {
+    margin-bottom: 14px;
+    padding: 8px 14px;
+    border: 1px solid var(--admin-border);
+    border-radius: 9px;
+    background: #FFFFFF;
+  }
+
+  .version-management-table td,
+  .version-trash-table td {
+    padding: 10px 0;
+    display: grid;
+    grid-template-columns: minmax(104px, 0.72fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .version-management-table td:last-child,
+  .version-trash-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .version-management-table td[data-label]::before,
+  .version-trash-table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--admin-text-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .version-row-actions {
+    min-width: 0;
+  }
+
+  .version-management-table td[colspan],
+  .version-trash-table td[colspan] {
+    display: block;
+    text-align: center;
+    border-bottom: 0;
   }
 }

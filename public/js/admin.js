@@ -637,91 +637,234 @@ async function loadAdminAuditLogs(page = 1) {
 // -------------------------------------------------------------
 // VERSION MANAGEMENT
 // -------------------------------------------------------------
+let editingVersionId = null;
+let versionCache = new Map();
+let trashVersionCache = new Map();
+
 function setupVersionForm() {
   const form = document.getElementById('addVersionForm');
   if (!form) return;
+
+  document.getElementById('btnCancelVersionEdit')?.addEventListener('click', resetVersionForm);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnSaveVersion');
     btn.disabled = true;
-    btn.textContent = 'Menyimpan...';
+    btn.textContent = editingVersionId ? 'Menyimpan Perubahan...' : 'Menyimpan...';
 
     const versionCode = document.getElementById('newVersionCode').value.trim();
     const fileSize = document.getElementById('newFileSize').value.trim();
+    const downloadUrl = document.getElementById('newDownloadUrl').value.trim();
     const releaseDate = document.getElementById('newReleaseDate').value.trim();
     const minAndroid = document.getElementById('newMinAndroid').value.trim();
     const changelog = document.getElementById('newChangelog').value.trim();
     const isLatest = document.getElementById('newIsLatest').checked;
+    const downloadEnabled = document.getElementById('newDownloadEnabled').checked;
 
     try {
-      const res = await fetch('/api/versions', {
-        method: 'POST',
+      const res = await fetch(editingVersionId ? `/api/versions/${editingVersionId}` : '/api/versions', {
+        method: editingVersionId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           version_code: versionCode,
           file_size: fileSize,
+          download_url: downloadUrl,
           release_date: releaseDate,
           min_android: minAndroid,
           changelog,
-          is_latest: isLatest
+          is_latest: isLatest,
+          download_enabled: downloadEnabled
         })
       });
 
       const data = await res.json();
-      if (data.success) {
-        alert(data.message);
-        form.reset();
-        loadVersionList();
-      } else {
-        alert(data.message || 'Gagal menyimpan versi.');
-      }
+      if (!res.ok || !data.success) throw new Error(data.message || 'Gagal menyimpan versi.');
+      alert(data.message);
+      resetVersionForm();
+      await loadVersionList();
+      loadDashboardStats();
     } catch (err) {
-      alert('Terjadi kesalahan jaringan.');
+      alert(err.message || 'Terjadi kesalahan jaringan.');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Simpan & Publikasikan Versi Baru';
+      btn.textContent = editingVersionId ? 'Simpan Perubahan' : 'Simpan & Publikasikan Versi Baru';
     }
   });
 }
 
+function resetVersionForm() {
+  const form = document.getElementById('addVersionForm');
+  editingVersionId = null;
+  form?.reset();
+  document.getElementById('versionFormTitle').textContent = 'Tambah Rilis Versi APK Baru';
+  document.getElementById('versionFormDescription').textContent = 'Tambahkan versi game edukasi baru yang langsung tampil di portal unduh publik.';
+  document.getElementById('btnSaveVersion').textContent = 'Simpan & Publikasikan Versi Baru';
+  document.getElementById('btnCancelVersionEdit').hidden = true;
+}
+
+function editVersion(versionId) {
+  const version = versionCache.get(Number(versionId));
+  if (!version) {
+    alert('Data versi belum tersedia. Muat ulang daftar lalu coba lagi.');
+    return;
+  }
+
+  editingVersionId = Number(versionId);
+  document.getElementById('newVersionCode').value = version.version_code || '';
+  document.getElementById('newFileSize').value = version.file_size || '';
+  document.getElementById('newDownloadUrl').value = version.download_url || '';
+  document.getElementById('newReleaseDate').value = version.release_date || '';
+  document.getElementById('newMinAndroid').value = version.min_android || '';
+  document.getElementById('newChangelog').value = Array.isArray(version.changelog)
+    ? version.changelog.join('\n')
+    : '';
+  document.getElementById('newIsLatest').checked = version.is_latest === 1;
+  document.getElementById('newDownloadEnabled').checked = version.download_enabled !== 0;
+  document.getElementById('versionFormTitle').textContent = `Edit ${version.version_code}`;
+  document.getElementById('versionFormDescription').textContent = 'Perbarui informasi rilis. Perubahan akan langsung digunakan oleh portal publik.';
+  document.getElementById('btnSaveVersion').textContent = 'Simpan Perubahan';
+  document.getElementById('btnCancelVersionEdit').hidden = false;
+  document.getElementById('addVersionForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('newVersionCode').focus({ preventScroll: true });
+}
+
 async function loadVersionList() {
   const tbody = document.getElementById('versionTableBody');
+  const trashBody = document.getElementById('versionTrashTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Memuat versi...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Memuat versi...</td></tr>';
+  if (trashBody) trashBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Memuat sampah...</td></tr>';
 
   try {
-    const res = await fetch('/api/versions');
-    const data = await res.json();
+    const [activeRes, trashRes] = await Promise.all([
+      fetch('/api/admin/versions?status=active'),
+      fetch('/api/admin/versions?status=trash')
+    ]);
+    const [data, trashData] = await Promise.all([activeRes.json(), trashRes.json()]);
 
-    if (!data.success || data.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Belum ada versi game yang terdaftar.</td></tr>';
-      return;
+    if (!activeRes.ok || !data.success) throw new Error(data.message || 'Gagal memuat daftar versi.');
+    if (!trashRes.ok || !trashData.success) throw new Error(trashData.message || 'Gagal memuat sampah versi.');
+
+    versionCache = new Map(data.data.map(version => [Number(version.id), version]));
+    trashVersionCache = new Map(trashData.data.map(version => [Number(version.id), version]));
+
+    if (data.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Belum ada versi game yang terdaftar.</td></tr>';
+    } else {
+      tbody.innerHTML = data.data.map(v => {
+        const isLatest = v.is_latest === 1;
+        const downloadEnabled = v.download_enabled !== 0;
+        return `
+          <tr>
+            <td data-label="Nomor Versi"><b class="version-code-cell">${escapeHtml(v.version_code)}</b></td>
+            <td data-label="Tanggal Rilis">${escapeHtml(v.release_date || '-')}</td>
+            <td data-label="Ukuran">${escapeHtml(v.file_size || '-')}</td>
+            <td data-label="Unduhan"><b class="version-download-count">${Number(v.download_count) || 0}</b> kali</td>
+            <td data-label="Status">
+              ${isLatest
+                ? '<span class="version-status-main">Utama</span>'
+                : '<span class="version-status-archive">Arsip</span>'}
+            </td>
+            <td data-label="Akses Unduhan">
+              <button
+                type="button"
+                class="version-download-toggle ${downloadEnabled ? 'is-enabled' : 'is-disabled'}"
+                aria-pressed="${downloadEnabled}"
+                aria-label="${downloadEnabled ? 'Nonaktifkan' : 'Aktifkan'} unduhan ${escapeHtml(v.version_code)}"
+                onclick="toggleVersionDownload(${v.id}, ${downloadEnabled ? 'false' : 'true'}, this)"
+              >
+                <span class="version-toggle-track" aria-hidden="true"><span></span></span>
+                <span class="version-toggle-copy">${downloadEnabled ? 'Aktif' : 'Nonaktif'}</span>
+              </button>
+            </td>
+            <td data-label="Tindakan">
+              <div class="version-row-actions">
+                <button type="button" class="btn-version-action edit" onclick="editVersion(${v.id})">Edit</button>
+                ${!isLatest ? `<button type="button" class="btn-version-action primary" onclick="setAsLatestVersion(${v.id})">Jadikan Utama</button>` : ''}
+                <button type="button" class="btn-version-action trash" onclick="moveVersionToTrash(${v.id})">Ke Sampah</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    tbody.innerHTML = data.data.map(v => {
-      const isLatest = v.is_latest === 1;
-      return `
-        <tr>
-          <td><b style="font-size: 1rem;">${v.version_code}</b></td>
-          <td>${v.release_date}</td>
-          <td>${v.file_size}</td>
-          <td><b style="color: #1D4ED8;">${v.download_count}</b> kali</td>
-          <td>
-            ${isLatest 
-              ? '<span style="background-color: #DCFCE7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 0.75rem;">Utama (Direkomendasikan)</span>' 
-              : '<span style="color: #64748B; font-size: 0.8rem;">Versi Arsip</span>'}
-          </td>
-          <td>
-            ${!isLatest ? `<button type="button" class="btn-page" onclick="setAsLatestVersion(${v.id})">Jadikan Utama</button>` : '-'}
-          </td>
-        </tr>
-      `;
-    }).join('');
+    document.getElementById('versionTrashCount').textContent = String(trashData.data.length);
+    if (trashBody) {
+      trashBody.innerHTML = trashData.data.length === 0
+        ? '<tr><td colspan="4" class="version-trash-empty">Sampah masih kosong.</td></tr>'
+        : trashData.data.map(v => `
+            <tr>
+              <td data-label="Nomor Versi"><b class="version-code-cell">${escapeHtml(v.version_code)}</b></td>
+              <td data-label="Tanggal Rilis">${escapeHtml(v.release_date || '-')}</td>
+              <td data-label="Dipindahkan">${escapeHtml(formatTime(v.deleted_at))}</td>
+              <td data-label="Tindakan"><button type="button" class="btn-version-action restore" onclick="restoreVersion(${v.id})">Pulihkan</button></td>
+            </tr>
+          `).join('');
+    }
 
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #DC2626;">Gagal memuat daftar versi.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #DC2626;">Gagal memuat daftar versi.</td></tr>';
+    if (trashBody) trashBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #DC2626;">Gagal memuat sampah versi.</td></tr>';
+  }
+}
+
+async function moveVersionToTrash(versionId) {
+  const versionCode = versionCache.get(Number(versionId))?.version_code || 'versi ini';
+  if (!confirm(`Pindahkan ${versionCode} ke sampah? Versi tidak akan tampil atau bisa diunduh, tetapi masih dapat dipulihkan.`)) return;
+  try {
+    const res = await fetch(`/api/versions/${versionId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Gagal memindahkan versi ke sampah.');
+    if (editingVersionId === Number(versionId)) resetVersionForm();
+    await loadVersionList();
+    loadDashboardStats();
+  } catch (err) {
+    alert(err.message || 'Gagal memindahkan versi ke sampah.');
+  }
+}
+
+async function restoreVersion(versionId) {
+  const versionCode = trashVersionCache.get(Number(versionId))?.version_code || 'versi ini';
+  if (!confirm(`Pulihkan ${versionCode} dari sampah? Unduhan akan tetap nonaktif sampai Anda mengaktifkannya.`)) return;
+  try {
+    const res = await fetch(`/api/versions/${versionId}/restore`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Gagal memulihkan versi.');
+    await loadVersionList();
+  } catch (err) {
+    alert(err.message || 'Gagal memulihkan versi.');
+  }
+}
+
+async function toggleVersionDownload(versionId, enabled, button) {
+  const previousText = button?.querySelector('.version-toggle-copy')?.textContent || '';
+  if (button) {
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    const copy = button.querySelector('.version-toggle-copy');
+    if (copy) copy.textContent = 'Menyimpan...';
+  }
+
+  try {
+    const res = await fetch(`/api/versions/${versionId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ download_enabled: enabled })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Gagal memperbarui akses unduhan.');
+    await loadVersionList();
+  } catch (err) {
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      const copy = button.querySelector('.version-toggle-copy');
+      if (copy) copy.textContent = previousText;
+    }
+    alert(err.message || 'Gagal memperbarui akses unduhan.');
   }
 }
 
