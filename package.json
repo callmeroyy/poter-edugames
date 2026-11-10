@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check database.js && node --check scripts/init-database.js && node --check scripts/migrate-sqlite-to-neon.js && node --check public/js/main.js && node --check public/js/admin.js",
+    "build:admin-upload": "esbuild src/admin-apk-upload.js --bundle --minify --format=iife --platform=browser --target=es2020 --outfile=public/js/admin-apk-upload.js",
+    "check": "npm run build:admin-upload && node --check server.js && node --check database.js && node --check scripts/init-database.js && node --check scripts/migrate-sqlite-to-neon.js && node --check public/js/main.js && node --check public/js/admin.js",
     "db:init": "node scripts/init-database.js",
     "migrate:neon": "node scripts/migrate-sqlite-to-neon.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,11 +18,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@vercel/blob": "^2.9.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "cookie-parser": "^1.4.7",
     "express": "^5.3.0",
     "pg": "^8.23.1",
     "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "overrides": {
+    "zod": "^4.6.7"
   }
 }

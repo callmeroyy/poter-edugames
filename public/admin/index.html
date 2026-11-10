@@ -400,10 +400,24 @@
               <input type="text" id="newFileSize" placeholder="64.5 MB" required />
             </div>
 
+            <div class="form-group full-width apk-upload-field">
+              <label for="newApkFile">Berkas APK</label>
+              <div class="apk-upload-control">
+                <input type="file" id="newApkFile" accept=".apk,application/vnd.android.package-archive" aria-describedby="apkUploadHelp apkUploadStatus" />
+                <button type="button" class="btn-upload-apk" id="btnUploadApk">Unggah APK</button>
+              </div>
+              <small id="apkUploadHelp">Maksimal 1 GB. Berkas dikirim langsung ke Vercel Blob dan tidak melewati batas ukuran Vercel Function.</small>
+              <div class="apk-upload-progress" id="apkUploadProgressWrap" hidden>
+                <progress id="apkUploadProgress" max="100" value="0" aria-label="Progres unggahan APK"></progress>
+                <span id="apkUploadPercent">0%</span>
+              </div>
+              <p class="apk-upload-status" id="apkUploadStatus" role="status" aria-live="polite">Belum ada berkas yang dipilih.</p>
+            </div>
+
             <div class="form-group full-width">
-              <label for="newDownloadUrl">URL APK Vercel Blob</label>
-              <input type="url" id="newDownloadUrl" placeholder="https://...public.blob.vercel-storage.com/POTER-EDUGAMES.apk" />
-              <small>Biarkan kosong sampai APK asli selesai diunggah. Unduhan tidak akan diaktifkan tanpa URL ini.</small>
+              <label for="newDownloadUrl">URL APK</label>
+              <input type="url" id="newDownloadUrl" placeholder="Terisi otomatis setelah APK berhasil diunggah" aria-describedby="downloadUrlHelp" />
+              <small id="downloadUrlHelp">URL dapat diisi manual sebagai cadangan, tetapi harus berasal dari Vercel Blob.</small>
             </div>
 
             <div class="form-group">
@@ -561,6 +575,7 @@ curl -X POST http://localhost:3000/api/track/install \
 
   </main>
 
+  <script src="/js/admin-apk-upload.js"></script>
   <script src="/js/admin.js"></script>
 </body>
 </html>

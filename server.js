@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const { Readable } = require('stream');
 const QRCode = require('qrcode');
 const bcrypt = require('bcryptjs');
+const { issueSignedToken } = require('@vercel/blob');
+const { handleUploadPresigned } = require('@vercel/blob/client');
 const db = require('./database');
 
 const app = express();
@@ -107,15 +109,19 @@ function sessionTokenHash(token) {
   return crypto.createHash('sha256').update(String(token || '')).digest('hex');
 }
 
-async function requireAuth(req, res, next) {
+async function getAuthenticatedAdmin(req) {
   const token = req.cookies.poter_admin_token;
-  const session = token
+  return token
     ? await db.prepare(`
         SELECT user_id AS id, username, role, created_at
         FROM admin_sessions
         WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP
       `).get(sessionTokenHash(token))
     : null;
+}
+
+async function requireAuth(req, res, next) {
+  const session = await getAuthenticatedAdmin(req);
   if (!session) {
     if (req.xhr || req.headers.accept?.includes('json')) {
       return res.status(401).json({ error: 'Sesi login tidak valid atau telah berakhir.' });
@@ -888,6 +894,108 @@ app.get('/api/admin/versions', requireAuth, async (req, res) => {
     res.json({ success: true, data: formatted });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+const APK_CONTENT_TYPE = 'application/vnd.android.package-archive';
+const MAX_APK_SIZE_BYTES = 1024 * 1024 * 1024;
+
+function safeApkPathPart(value, fallback = 'versi-baru') {
+  const cleaned = String(value || '')
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+  return cleaned || fallback;
+}
+
+function parseUploadClientPayload(value) {
+  try {
+    return JSON.parse(value || '{}');
+  } catch {
+    throw new Error('Data unggahan APK tidak valid.');
+  }
+}
+
+// Cookie auth protects token issuance; Blob signs the completion callback instead.
+app.post('/api/admin/apk-upload', async (req, res) => {
+  try {
+    const result = await handleUploadPresigned({
+      body: req.body,
+      request: req,
+      getSignedToken: async (pathname, clientPayload) => {
+        const admin = await getAuthenticatedAdmin(req);
+        if (!admin) {
+          const error = new Error('Sesi admin tidak valid atau telah berakhir.');
+          error.statusCode = 401;
+          throw error;
+        }
+
+        const payload = parseUploadClientPayload(clientPayload);
+        const versionCode = String(payload.versionCode || '').trim();
+        if (!versionCode) throw new Error('Nomor versi wajib diisi sebelum APK diunggah.');
+
+        const safeVersion = safeApkPathPart(versionCode);
+        const expectedPath = `apks/${safeVersion}/POTER-EDUGAMES-${safeVersion}.apk`;
+        if (pathname !== expectedPath || !pathname.toLowerCase().endsWith('.apk')) {
+          throw new Error('Lokasi unggahan APK tidak diizinkan.');
+        }
+
+        const validUntil = Date.now() + (15 * 60 * 1000);
+        const token = await issueSignedToken({
+          pathname,
+          operations: ['put'],
+          allowedContentTypes: [APK_CONTENT_TYPE],
+          maximumSizeInBytes: MAX_APK_SIZE_BYTES,
+          validUntil
+        });
+
+        await recordAdminAudit(req, {
+          user: admin,
+          category: 'version_management',
+          action: 'START_APK_UPLOAD',
+          details: `Memulai unggahan APK untuk ${versionCode}`
+        });
+
+        return {
+          token,
+          urlOptions: {
+            allowedContentTypes: [APK_CONTENT_TYPE],
+            maximumSizeInBytes: MAX_APK_SIZE_BYTES,
+            validUntil,
+            addRandomSuffix: true,
+            allowOverwrite: false,
+            cacheControlMaxAge: 60 * 60,
+            tokenPayload: JSON.stringify({
+              userId: admin.id,
+              username: admin.username,
+              versionCode
+            })
+          }
+        };
+      },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        const payload = parseUploadClientPayload(tokenPayload);
+        await recordAdminAudit(req, {
+          user: {
+            id: Number(payload.userId) || null,
+            username: String(payload.username || 'admin')
+          },
+          category: 'version_management',
+          action: 'COMPLETE_APK_UPLOAD',
+          details: `APK ${payload.versionCode || '-'} selesai diunggah: ${blob.pathname}`
+        });
+      }
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('APK upload route failed:', err.message);
+    const statusCode = Number(err.statusCode) || 400;
+    res.status(statusCode).json({
+      success: false,
+      message: err.message || 'Unggahan APK gagal diproses.'
+    });
   }
 });
 

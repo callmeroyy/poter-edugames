@@ -640,29 +640,183 @@ async function loadAdminAuditLogs(page = 1) {
 let editingVersionId = null;
 let versionCache = new Map();
 let trashVersionCache = new Map();
+let uploadedApkSignature = null;
+let apkUploadInProgress = false;
+let versionSaveInProgress = false;
+
+const MAX_APK_SIZE_BYTES = 1024 * 1024 * 1024;
+
+function apkFileSignature(file) {
+  return file ? `${file.name}:${file.size}:${file.lastModified}` : null;
+}
+
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '';
+  if (bytes < 1024 * 1024) return `${Math.max(0.1, bytes / 1024).toFixed(1)} KB`;
+  const megabytes = bytes / (1024 * 1024);
+  return megabytes >= 1024
+    ? `${(megabytes / 1024).toFixed(2)} GB`
+    : `${megabytes.toFixed(megabytes >= 10 ? 1 : 2)} MB`;
+}
+
+function setApkUploadStatus(message, state = '') {
+  const status = document.getElementById('apkUploadStatus');
+  if (!status) return;
+  status.textContent = message;
+  if (state) status.dataset.state = state;
+  else delete status.dataset.state;
+}
+
+function syncVersionFormBusyState() {
+  const fileInput = document.getElementById('newApkFile');
+  const uploadButton = document.getElementById('btnUploadApk');
+  const saveButton = document.getElementById('btnSaveVersion');
+  if (fileInput) fileInput.disabled = apkUploadInProgress || versionSaveInProgress;
+  if (uploadButton) uploadButton.disabled = apkUploadInProgress || versionSaveInProgress;
+  if (saveButton) saveButton.disabled = apkUploadInProgress || versionSaveInProgress;
+}
+
+function resetApkUploadState(message = 'Belum ada berkas yang dipilih.') {
+  uploadedApkSignature = null;
+  apkUploadInProgress = false;
+  const progressWrap = document.getElementById('apkUploadProgressWrap');
+  const progress = document.getElementById('apkUploadProgress');
+  const percent = document.getElementById('apkUploadPercent');
+  if (progressWrap) progressWrap.hidden = true;
+  if (progress) progress.value = 0;
+  if (percent) percent.textContent = '0%';
+  setApkUploadStatus(message);
+  syncVersionFormBusyState();
+}
+
+function validateSelectedApk(file) {
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.apk')) {
+    throw new Error('Berkas harus menggunakan ekstensi .apk.');
+  }
+  if (file.size <= 0) {
+    throw new Error('Berkas APK kosong dan tidak dapat diunggah.');
+  }
+  if (file.size > MAX_APK_SIZE_BYTES) {
+    throw new Error('Ukuran APK melebihi batas 1 GB.');
+  }
+}
+
+async function uploadSelectedApkIfNeeded() {
+  const fileInput = document.getElementById('newApkFile');
+  const file = fileInput?.files?.[0];
+  if (!file) return document.getElementById('newDownloadUrl').value.trim();
+
+  validateSelectedApk(file);
+  const signature = apkFileSignature(file);
+  const currentUrl = document.getElementById('newDownloadUrl').value.trim();
+  if (uploadedApkSignature === signature && currentUrl) return currentUrl;
+
+  const versionCode = document.getElementById('newVersionCode').value.trim();
+  if (!versionCode) {
+    document.getElementById('newVersionCode').focus();
+    throw new Error('Isi nomor versi sebelum mengunggah APK.');
+  }
+  if (!window.PoterApkUpload?.uploadApk) {
+    throw new Error('Modul unggahan belum siap. Muat ulang halaman lalu coba lagi.');
+  }
+
+  const progressWrap = document.getElementById('apkUploadProgressWrap');
+  const progress = document.getElementById('apkUploadProgress');
+  const percent = document.getElementById('apkUploadPercent');
+  const uploadButton = document.getElementById('btnUploadApk');
+
+  apkUploadInProgress = true;
+  syncVersionFormBusyState();
+  if (progressWrap) progressWrap.hidden = false;
+  if (uploadButton) uploadButton.textContent = 'Mengunggah...';
+  setApkUploadStatus(`Mengunggah ${file.name} ke penyimpanan...`);
+
+  try {
+    const blob = await window.PoterApkUpload.uploadApk({
+      file,
+      versionCode,
+      onProgress: ({ percentage }) => {
+        const value = Math.max(0, Math.min(100, Math.round(percentage || 0)));
+        if (progress) progress.value = value;
+        if (percent) percent.textContent = `${value}%`;
+      }
+    });
+
+    document.getElementById('newDownloadUrl').value = blob.url;
+    document.getElementById('newFileSize').value = formatFileSize(file.size);
+    uploadedApkSignature = signature;
+    if (progress) progress.value = 100;
+    if (percent) percent.textContent = '100%';
+    setApkUploadStatus('APK berhasil diunggah. URL sudah terpasang pada rilis ini.', 'success');
+    return blob.url;
+  } catch (error) {
+    uploadedApkSignature = null;
+    setApkUploadStatus(error.message || 'Unggahan APK gagal. Silakan coba lagi.', 'error');
+    throw error;
+  } finally {
+    apkUploadInProgress = false;
+    if (uploadButton) uploadButton.textContent = 'Unggah APK';
+    syncVersionFormBusyState();
+  }
+}
 
 function setupVersionForm() {
   const form = document.getElementById('addVersionForm');
   if (!form) return;
 
   document.getElementById('btnCancelVersionEdit')?.addEventListener('click', resetVersionForm);
+  document.getElementById('btnUploadApk')?.addEventListener('click', async () => {
+    if (!document.getElementById('newApkFile')?.files?.length) {
+      setApkUploadStatus('Pilih berkas APK terlebih dahulu.', 'error');
+      document.getElementById('newApkFile')?.focus();
+      return;
+    }
+    try {
+      await uploadSelectedApkIfNeeded();
+    } catch (error) {}
+  });
+
+  document.getElementById('newApkFile')?.addEventListener('change', (event) => {
+    const file = event.target.files?.[0];
+    uploadedApkSignature = null;
+    if (!file) {
+      resetApkUploadState();
+      return;
+    }
+    try {
+      validateSelectedApk(file);
+      document.getElementById('newFileSize').value = formatFileSize(file.size);
+      resetApkUploadState(`${file.name} siap diunggah saat rilis disimpan.`);
+    } catch (error) {
+      event.target.value = '';
+      resetApkUploadState(error.message);
+      setApkUploadStatus(error.message, 'error');
+    }
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btnSaveVersion');
-    btn.disabled = true;
-    btn.textContent = editingVersionId ? 'Menyimpan Perubahan...' : 'Menyimpan...';
-
-    const versionCode = document.getElementById('newVersionCode').value.trim();
-    const fileSize = document.getElementById('newFileSize').value.trim();
-    const downloadUrl = document.getElementById('newDownloadUrl').value.trim();
-    const releaseDate = document.getElementById('newReleaseDate').value.trim();
-    const minAndroid = document.getElementById('newMinAndroid').value.trim();
-    const changelog = document.getElementById('newChangelog').value.trim();
-    const isLatest = document.getElementById('newIsLatest').checked;
-    const downloadEnabled = document.getElementById('newDownloadEnabled').checked;
+    versionSaveInProgress = true;
+    syncVersionFormBusyState();
+    btn.textContent = document.getElementById('newApkFile')?.files?.length
+      ? 'Mengunggah APK...'
+      : (editingVersionId ? 'Menyimpan Perubahan...' : 'Menyimpan...');
 
     try {
+      await uploadSelectedApkIfNeeded();
+      btn.textContent = editingVersionId ? 'Menyimpan Perubahan...' : 'Menyimpan...';
+
+      const versionCode = document.getElementById('newVersionCode').value.trim();
+      const fileSize = document.getElementById('newFileSize').value.trim();
+      const downloadUrl = document.getElementById('newDownloadUrl').value.trim();
+      const releaseDate = document.getElementById('newReleaseDate').value.trim();
+      const minAndroid = document.getElementById('newMinAndroid').value.trim();
+      const changelog = document.getElementById('newChangelog').value.trim();
+      const isLatest = document.getElementById('newIsLatest').checked;
+      const downloadEnabled = document.getElementById('newDownloadEnabled').checked;
+
       const res = await fetch(editingVersionId ? `/api/versions/${editingVersionId}` : '/api/versions', {
         method: editingVersionId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -687,7 +841,8 @@ function setupVersionForm() {
     } catch (err) {
       alert(err.message || 'Terjadi kesalahan jaringan.');
     } finally {
-      btn.disabled = false;
+      versionSaveInProgress = false;
+      syncVersionFormBusyState();
       btn.textContent = editingVersionId ? 'Simpan Perubahan' : 'Simpan & Publikasikan Versi Baru';
     }
   });
@@ -697,6 +852,7 @@ function resetVersionForm() {
   const form = document.getElementById('addVersionForm');
   editingVersionId = null;
   form?.reset();
+  resetApkUploadState();
   document.getElementById('versionFormTitle').textContent = 'Tambah Rilis Versi APK Baru';
   document.getElementById('versionFormDescription').textContent = 'Tambahkan versi game edukasi baru yang langsung tampil di portal unduh publik.';
   document.getElementById('btnSaveVersion').textContent = 'Simpan & Publikasikan Versi Baru';
@@ -714,6 +870,10 @@ function editVersion(versionId) {
   document.getElementById('newVersionCode').value = version.version_code || '';
   document.getElementById('newFileSize').value = version.file_size || '';
   document.getElementById('newDownloadUrl').value = version.download_url || '';
+  document.getElementById('newApkFile').value = '';
+  resetApkUploadState(version.download_url
+    ? 'APK versi ini sudah terhubung. Pilih berkas baru hanya jika ingin menggantinya.'
+    : 'Versi ini belum memiliki berkas APK.');
   document.getElementById('newReleaseDate').value = version.release_date || '';
   document.getElementById('newMinAndroid').value = version.min_android || '';
   document.getElementById('newChangelog').value = Array.isArray(version.changelog)
