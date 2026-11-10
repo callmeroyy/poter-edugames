@@ -354,11 +354,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Escape key closes open modals (Keyboard Accessibility - antislop R-32)
+  // -----------------------------------------------------------
+  // Mobile Navigation Drawer (Android & Mobile Devices)
+  // -----------------------------------------------------------
+  const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+  const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+  const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
+  const mobileDrawerClose = document.getElementById('mobileDrawerClose');
+  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+  const mobileDrawerDownloadBtn = document.getElementById('mobileDrawerDownloadBtn');
+
+  function openMobileMenu() {
+    if (!mobileNavDrawer || !mobileMenuToggle) return;
+    mobileNavDrawer.classList.add('is-open');
+    mobileNavDrawer.setAttribute('aria-hidden', 'false');
+    mobileDrawerBackdrop?.classList.add('is-open');
+    mobileMenuToggle.setAttribute('aria-expanded', 'true');
+    mobileMenuToggle.setAttribute('aria-label', 'Tutup menu navigasi');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileMenu() {
+    if (!mobileNavDrawer || !mobileMenuToggle) return;
+    mobileNavDrawer.classList.remove('is-open');
+    mobileNavDrawer.setAttribute('aria-hidden', 'true');
+    mobileDrawerBackdrop?.classList.remove('is-open');
+    mobileMenuToggle.setAttribute('aria-expanded', 'false');
+    mobileMenuToggle.setAttribute('aria-label', 'Buka menu navigasi');
+    document.body.style.overflow = '';
+  }
+
+  mobileMenuToggle?.addEventListener('click', () => {
+    const isOpen = mobileNavDrawer?.classList.contains('is-open');
+    if (isOpen) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  });
+
+  mobileDrawerClose?.addEventListener('click', closeMobileMenu);
+  mobileDrawerBackdrop?.addEventListener('click', closeMobileMenu);
+
+  mobileNavLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      closeMobileMenu();
+    });
+  });
+
+  if (mobileDrawerDownloadBtn) {
+    mobileDrawerDownloadBtn.addEventListener('click', () => {
+      closeMobileMenu();
+      const version = document.getElementById('specVersion')?.textContent?.trim() || 'v1.1.0';
+      handleDownloadAction(version, 'Menu Drawer Mobile');
+    });
+  }
+
+  // Escape key closes open modals and mobile menu (Keyboard Accessibility - antislop R-32)
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (qrModal) qrModal.classList.remove('active');
       if (downloadModal) downloadModal.classList.remove('active');
+      if (mobileNavDrawer && mobileNavDrawer.classList.contains('is-open')) {
+        closeMobileMenu();
+      }
     }
   });
 
