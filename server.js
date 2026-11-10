@@ -8,6 +8,7 @@ const QRCode = require('qrcode');
 const bcrypt = require('bcryptjs');
 const { issueSignedToken, del } = require('@vercel/blob');
 const { handleUploadPresigned } = require('@vercel/blob/client');
+const { sendPasswordResetEmail } = require('./mailer');
 const db = require('./database');
 
 const app = express();
@@ -519,6 +520,170 @@ app.get('/api/auth/me', async (req, res) => {
     return res.json({ authenticated: false });
   }
   res.json({ authenticated: true, user: session });
+});
+
+// Request Password Reset Link via Email (Resend)
+app.post('/api/auth/forgot-password', async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ success: false, message: 'Alamat email wajib diisi dengan format yang benar.' });
+    }
+
+    // Rate limiting: check recent requests in last 15 minutes
+    const recentRequests = await db.prepare(`
+      SELECT COUNT(*) AS count FROM password_resets
+      WHERE created_at >= datetime('now', '-15 minutes')
+    `).get();
+    if (Number(recentRequests?.count || 0) > 10) {
+      return res.status(429).json({
+        success: false,
+        message: 'Terlalu banyak permintaan reset kata sandi. Silakan tunggu beberapa saat lagi.'
+      });
+    }
+
+    // Check matching user
+    const user = await db.prepare('SELECT id, username, email FROM users WHERE LOWER(email) = ? OR (username = ? AND ? = ?)')
+      .get(email, 'admin', email, 'poteredugames@gmail.com');
+
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'Jika email terdaftar, instruksi atur ulang kata sandi telah dikirim ke email Anda.'
+      });
+    }
+
+    // Generate cryptographic random token (32 bytes)
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    await db.prepare(`
+      INSERT INTO password_resets (user_id, email, token_hash, expires_at)
+      VALUES (?, ?, ?, ?)
+    `).run(user.id, email, tokenHash, expiresAt);
+
+    // Build absolute reset URL
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
+    const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const resetUrl = `${protocol}://${host}/admin/reset-password.html?token=${rawToken}`;
+
+    await sendPasswordResetEmail({ to: email, resetUrl });
+
+    await recordAdminAudit(req, {
+      user,
+      category: 'authentication',
+      action: 'FORGOT_PASSWORD_REQUESTED',
+      details: `Permintaan reset kata sandi dikirim ke ${email}`
+    });
+
+    res.json({
+      success: true,
+      message: 'Instruksi atur ulang kata sandi telah dikirim ke email Anda. Periksa kotak masuk (atau folder spam).'
+    });
+  } catch (err) {
+    console.error('Forgot password route error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memproses permintaan reset kata sandi.',
+      error: err.message
+    });
+  }
+});
+
+// Verify validity of password reset token
+app.post('/api/auth/verify-reset-token', async (req, res) => {
+  try {
+    const rawToken = String(req.body?.token || '').trim();
+    if (!rawToken || rawToken.length < 32) {
+      return res.status(400).json({ valid: false, message: 'Tautan pemulihan tidak valid.' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const reset = await db.prepare(`
+      SELECT id, email, expires_at, used_at FROM password_resets
+      WHERE token_hash = ? AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP
+    `).get(tokenHash);
+
+    if (!reset) {
+      return res.status(400).json({
+        valid: false,
+        message: 'Tautan pemulihan tidak valid atau sudah kedaluwarsa. Silakan ajukan tautan baru.'
+      });
+    }
+
+    res.json({ valid: true, email: reset.email });
+  } catch (err) {
+    res.status(500).json({ valid: false, message: 'Gagal memverifikasi tautan.', error: err.message });
+  }
+});
+
+// Execute Password Reset
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const rawToken = String(req.body?.token || '').trim();
+    const newPassword = String(req.body?.newPassword || '');
+
+    if (!rawToken || rawToken.length < 32) {
+      return res.status(400).json({ success: false, message: 'Tautan pemulihan tidak valid.' });
+    }
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Kata sandi baru minimal harus 8 karakter.' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const reset = await db.prepare(`
+      SELECT id, user_id, email, expires_at, used_at FROM password_resets
+      WHERE token_hash = ? AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP
+    `).get(tokenHash);
+
+    if (!reset) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tautan pemulihan tidak valid atau sudah kedaluwarsa. Silakan ajukan tautan baru.'
+      });
+    }
+
+    const passwordHash = bcrypt.hashSync(newPassword, 10);
+
+    await db.transaction(async tx => {
+      // 1. Update user password
+      if (reset.user_id) {
+        await tx.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, reset.user_id);
+      } else {
+        await tx.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(passwordHash, 'admin');
+      }
+
+      // 2. Mark token as used
+      await tx.prepare('UPDATE password_resets SET used_at = CURRENT_TIMESTAMP WHERE id = ?').run(reset.id);
+
+      // 3. Clear all active sessions to force re-login
+      if (reset.user_id) {
+        await tx.prepare('DELETE FROM admin_sessions WHERE user_id = ?').run(reset.user_id);
+      } else {
+        await tx.prepare('DELETE FROM admin_sessions WHERE username = ?').run('admin');
+      }
+    });
+
+    await recordAdminAudit(req, {
+      user: { id: reset.user_id, username: 'admin' },
+      category: 'authentication',
+      action: 'PASSWORD_RESET_SUCCESS',
+      details: `Kata sandi berhasil diatur ulang via email pemulihan (${reset.email})`
+    });
+
+    res.json({
+      success: true,
+      message: 'Kata sandi Anda berhasil diperbarui! Silakan masuk dengan kata sandi baru Anda.'
+    });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui kata sandi.',
+      error: err.message
+    });
+  }
 });
 
 // -------------------------------------------------------------

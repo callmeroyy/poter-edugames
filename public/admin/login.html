@@ -113,6 +113,130 @@
       color: #991B1B;
       border: 1px solid #FCA5A5;
     }
+    .alert-success {
+      background-color: #F0FDF4;
+      color: #166534;
+      border: 1px solid #BBF7D0;
+    }
+    .form-row-extra {
+      display: flex;
+      justify-content: flex-end;
+      margin: -6px 0 16px 0;
+    }
+    .btn-forgot-password {
+      background: none;
+      border: none;
+      padding: 4px 0;
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .btn-forgot-password:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+    .btn-forgot-password:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 9999;
+    }
+    .modal-card {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      width: 100%;
+      max-width: 440px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 0;
+    }
+    .btn-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .btn-modal-close:hover {
+      background-color: #F1F5F9;
+      color: var(--text-main);
+    }
+    .modal-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin: 0 0 18px 0;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .btn-modal-cancel {
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: #FFFFFF;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 0.9rem;
+      min-height: 44px;
+      cursor: pointer;
+    }
+    .btn-modal-cancel:hover {
+      background: #F1F5F9;
+    }
+    .btn-modal-submit {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--primary);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.9rem;
+      min-height: 44px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-modal-submit:hover {
+      background: var(--primary-hover);
+    }
+    .btn-modal-submit:disabled,
+    .btn-submit-login:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
     .login-footer-info {
       margin-top: 24px;
       border-top: 1px solid var(--border-color);
@@ -170,6 +294,10 @@
         />
       </div>
 
+      <div class="form-row-extra">
+        <button type="button" class="btn-forgot-password" id="openForgotModal">Lupa kata sandi?</button>
+      </div>
+
       <button type="submit" class="btn-submit-login" id="submitBtn">
         Masuk ke Dashboard
       </button>
@@ -183,6 +311,40 @@
     <div class="login-footer-info">
       PT Poter Teknik Nusantara • Sistem Pemantau Distribusi APK<br>
       <a href="/" style="color: var(--primary); font-weight: 700; display: inline-block; margin-top: 8px;">← Kembali ke Beranda Unduh</a>
+    </div>
+  </div>
+
+  <!-- Modal Lupa Kata Sandi -->
+  <div class="modal-backdrop" id="forgotModalBackdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="forgotModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="forgotModalTitle" class="modal-title">Atur Ulang Kata Sandi Admin</h2>
+        <button type="button" class="btn-modal-close" id="closeForgotModal" aria-label="Tutup">&times;</button>
+      </div>
+      <p class="modal-desc">
+        Masukkan alamat email admin resmi (<b>poteredugames@gmail.com</b>). Tautan pemulihan akan dikirimkan ke kotak masuk email Anda dengan masa aktif 15 menit.
+      </p>
+
+      <div class="login-alert alert-danger" id="forgotError" style="display: none;" role="alert"></div>
+      <div class="login-alert alert-success" id="forgotSuccess" style="display: none;" role="alert"></div>
+
+      <form id="forgotForm">
+        <div class="form-group">
+          <label for="forgotEmailInput" class="form-label">Alamat Email Admin</label>
+          <input 
+            type="email" 
+            id="forgotEmailInput" 
+            class="form-input" 
+            placeholder="poteredugames@gmail.com" 
+            value="poteredugames@gmail.com"
+            required 
+          />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-modal-cancel" id="cancelForgotModal">Batal</button>
+          <button type="submit" class="btn-modal-submit" id="submitForgotBtn">Kirim Tautan Pemulihan</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -203,6 +365,74 @@
       const passwordInput = document.getElementById('passwordInput');
       const loginError = document.getElementById('loginError');
       const submitBtn = document.getElementById('submitBtn');
+
+      // Forgot Password Modal Elements
+      const openForgotModalBtn = document.getElementById('openForgotModal');
+      const forgotModalBackdrop = document.getElementById('forgotModalBackdrop');
+      const closeForgotModalBtn = document.getElementById('closeForgotModal');
+      const cancelForgotModalBtn = document.getElementById('cancelForgotModal');
+      const forgotForm = document.getElementById('forgotForm');
+      const forgotEmailInput = document.getElementById('forgotEmailInput');
+      const forgotError = document.getElementById('forgotError');
+      const forgotSuccess = document.getElementById('forgotSuccess');
+      const submitForgotBtn = document.getElementById('submitForgotBtn');
+
+      function openModal() {
+        forgotError.style.display = 'none';
+        forgotSuccess.style.display = 'none';
+        forgotModalBackdrop.style.display = 'flex';
+        forgotEmailInput.focus();
+      }
+
+      function closeModal() {
+        forgotModalBackdrop.style.display = 'none';
+      }
+
+      openForgotModalBtn?.addEventListener('click', openModal);
+      closeForgotModalBtn?.addEventListener('click', closeModal);
+      cancelForgotModalBtn?.addEventListener('click', closeModal);
+
+      forgotModalBackdrop?.addEventListener('click', (e) => {
+        if (e.target === forgotModalBackdrop) closeModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && forgotModalBackdrop.style.display === 'flex') {
+          closeModal();
+        }
+      });
+
+      forgotForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        forgotError.style.display = 'none';
+        forgotSuccess.style.display = 'none';
+        submitForgotBtn.disabled = true;
+        submitForgotBtn.textContent = 'Mengirim...';
+
+        try {
+          const res = await fetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: forgotEmailInput.value.trim() })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            forgotSuccess.textContent = data.message;
+            forgotSuccess.style.display = 'block';
+            submitForgotBtn.style.display = 'none';
+          } else {
+            forgotError.textContent = data.message || 'Gagal mengirim instruksi pemulihan.';
+            forgotError.style.display = 'block';
+            submitForgotBtn.disabled = false;
+            submitForgotBtn.textContent = 'Kirim Tautan Pemulihan';
+          }
+        } catch (err) {
+          forgotError.textContent = 'Terjadi gangguan jaringan. Coba beberapa saat lagi.';
+          forgotError.style.display = 'block';
+          submitForgotBtn.disabled = false;
+          submitForgotBtn.textContent = 'Kirim Tautan Pemulihan';
+        }
+      });
 
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();

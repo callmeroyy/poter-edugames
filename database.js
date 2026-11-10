@@ -119,12 +119,20 @@ async function initializePostgres() {
       user_agent TEXT, status TEXT DEFAULT 'success',
       timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id BIGSERIAL PRIMARY KEY, user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+      email TEXT NOT NULL, token_hash TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ DEFAULT NULL, created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT DEFAULT 'poteredugames@gmail.com';
     CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON access_logs(timestamp);
     CREATE INDEX IF NOT EXISTS idx_download_logs_verified ON download_logs(verified, timestamp);
     CREATE INDEX IF NOT EXISTS idx_install_logs_verified ON install_logs(verified, timestamp);
     CREATE INDEX IF NOT EXISTS idx_app_versions_deleted_at ON app_versions(deleted_at);
     CREATE INDEX IF NOT EXISTS idx_admin_audit_timestamp ON admin_audit_logs(timestamp);
     CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
   `);
 }
 
@@ -168,12 +176,22 @@ function initializeSqlite() {
       user_agent TEXT, status TEXT DEFAULT 'success',
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER,
+      email TEXT NOT NULL, token_hash TEXT NOT NULL, expires_at DATETIME NOT NULL,
+      used_at DATETIME DEFAULT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
   `);
   const versionColumns = sqlite.prepare('PRAGMA table_info(app_versions)').all().map(column => column.name);
   if (!versionColumns.includes('download_enabled')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN download_enabled INTEGER NOT NULL DEFAULT 1');
   if (!versionColumns.includes('deleted_at')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN deleted_at DATETIME DEFAULT NULL');
   if (!versionColumns.includes('download_url')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN download_url TEXT');
+
+  const userColumns = sqlite.prepare('PRAGMA table_info(users)').all().map(column => column.name);
+  if (!userColumns.includes('email')) sqlite.exec("ALTER TABLE users ADD COLUMN email TEXT DEFAULT 'poteredugames@gmail.com'");
 }
 
 async function seedDefaults() {
@@ -181,13 +199,10 @@ async function seedDefaults() {
   const existingAdmin = await db.prepare('SELECT id FROM users WHERE username = ?').get(username);
   if (!existingAdmin) {
     const password = process.env.ADMIN_PASSWORD || (!usePostgres ? 'poter202612345678910' : crypto.randomBytes(24).toString('base64url'));
-    await db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(username, bcrypt.hashSync(password, 10), 'admin');
+    await db.prepare('INSERT INTO users (username, password_hash, role, email) VALUES (?, ?, ?, ?)').run(username, bcrypt.hashSync(password, 10), 'admin', 'poteredugames@gmail.com');
     if (usePostgres && !process.env.ADMIN_PASSWORD) console.warn('ADMIN_PASSWORD belum diatur; atur sebelum login produksi.');
-  } else if (process.env.ADMIN_PASSWORD) {
-    const userRow = await db.prepare('SELECT password_hash FROM users WHERE username = ?').get(username);
-    if (userRow && !bcrypt.compareSync(process.env.ADMIN_PASSWORD, userRow.password_hash)) {
-      await db.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10), username);
-    }
+  } else {
+    await db.prepare("UPDATE users SET email = 'poteredugames@gmail.com' WHERE username = ? AND (email IS NULL OR email = '')").run(username);
   }
 
   const versionCount = await db.prepare('SELECT COUNT(*) AS count FROM app_versions').get();
