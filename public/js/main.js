@@ -262,9 +262,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/qr');
         const data = await res.json();
         if (data.success) {
-          qrDisplayArea.innerHTML = `
-            <img src="${data.qr}" alt="QR Code Unduh APK POTER EDUGAMES" width="240" height="240" />
-          `;
+          const qrImage = document.createElement('img');
+          qrImage.src = data.qr;
+          qrImage.alt = 'QR Code menuju halaman unduh POTER EDUGAMES';
+          qrImage.width = 260;
+          qrImage.height = 260;
+
+          const fallbackLink = document.createElement('a');
+          fallbackLink.href = data.url;
+          fallbackLink.className = 'qr-fallback-link';
+          fallbackLink.textContent = 'Buka halaman unduh di perangkat ini';
+
+          qrDisplayArea.replaceChildren(qrImage, fallbackLink);
         } else {
           qrDisplayArea.innerHTML = '<div style="color: #dc2626; padding: 20px;">Gagal memuat kode QR.</div>';
         }
@@ -657,6 +666,20 @@ document.addEventListener('DOMContentLoaded', () => {
             handleDownloadAction(ver, 'Daftar Versi: ' + ver);
           });
         });
+
+        const openedFromQr = new URLSearchParams(window.location.search).get('download') === 'qr';
+        if (openedFromQr && latest && downloadModal) {
+          const modalTitle = document.getElementById('downloadModalTitle');
+          const modalDescription = downloadModal.querySelector('.modal-desc');
+          if (modalTitle) modalTitle.textContent = 'QR Berhasil Dipindai';
+          if (modalDescription) {
+            modalDescription.textContent = `POTER EDUGAMES ${latest.version_code} siap diunduh. Ketuk tombol di bawah untuk mulai mengunduh APK.`;
+          }
+          const modalLabel = modalDownloadBtn?.querySelector('.download-button-label');
+          if (modalLabel) modalLabel.textContent = `Unduh APK ${latest.version_code}`;
+          downloadModal.classList.add('active');
+          window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`);
+        }
       }
     } catch (err) {
       console.warn('Gagal memuat pembaruan versi dinamis:', err);

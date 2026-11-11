@@ -381,18 +381,19 @@ app.get(['/download', '/download/:version'], async (req, res) => {
   }
 });
 
-// QR Code Generator for mobile instant scan
+// QR opens the landing page first because mobile scanners often block direct APK responses.
 app.get('/api/qr', async (req, res) => {
   try {
     const host = req.headers.host || 'localhost:3000';
     const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-    const targetUrl = `${protocol}://${host}/download`;
+    const targetUrl = new URL('/?download=qr', `${protocol}://${host}`).toString();
 
     const qrDataUrl = await QRCode.toDataURL(targetUrl, {
-      margin: 2,
-      width: 280,
+      errorCorrectionLevel: 'H',
+      margin: 4,
+      width: 320,
       color: {
-        dark: '#1E3A8A',
+        dark: '#000000',
         light: '#FFFFFF'
       }
     });
