@@ -1396,7 +1396,7 @@ async function loadAdminReviews() {
           <td><span class="badge-version">${escapeAdminHtml(item.category)}</span></td>
           <td style="max-width: 420px; white-space: normal; line-height: 1.5;">${escapeAdminHtml(item.message)}</td>
           <td style="text-align: center;">
-            <button type="button" class="btn-version-action permanent-delete" onclick="deleteAdminReview(${Number(item.id)})">
+            <button type="button" class="btn-version-action permanent-delete" style="min-height: 36px; padding: 6px 14px; font-weight: 700;" onclick="deleteAdminReview(${Number(item.id)})">
               Hapus
             </button>
           </td>

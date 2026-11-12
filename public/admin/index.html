@@ -544,21 +544,23 @@
     <!-- TAB: SARAN & ULASAN -->
     <section id="tab-reviews" class="tab-content" style="display: none;" role="tabpanel">
       <div class="table-card">
-        <div class="table-card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div class="table-toolbar">
           <div>
-            <h2 style="font-size: 1.2rem; font-weight: 800; margin: 0;">Daftar Saran &amp; Ulasan Pengguna</h2>
-            <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin-top: 4px;">Pantau masukan dari orang tua dan guru, serta hapus jika ada masukan yang tidak sesuai.</p>
+            <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--admin-text-main); margin: 0;">Daftar Saran &amp; Ulasan Pengguna</h2>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin: 4px 0 0;">Pantau masukan dari orang tua dan guru, serta hapus jika ada masukan yang tidak sesuai.</p>
           </div>
-          <button type="button" class="btn-export" id="btnRefreshAdminReviews" style="min-height: 38px; padding: 8px 14px;">Muat Ulang</button>
+          <div class="filter-actions">
+            <button type="button" class="btn-export" id="btnRefreshAdminReviews">Muat Ulang</button>
+          </div>
         </div>
 
-        <div class="table-responsive" style="margin-top: 16px;">
-          <table class="admin-table">
+        <div class="data-table-wrap">
+          <table class="data-table">
             <thead>
               <tr>
-                <th>Tanggal</th>
-                <th>Pengirim</th>
-                <th>Kategori</th>
+                <th style="width: 170px;">Tanggal</th>
+                <th style="width: 180px;">Pengirim</th>
+                <th style="width: 130px;">Kategori</th>
                 <th>Isi Saran / Ulasan</th>
                 <th style="width: 110px; text-align: center;">Aksi</th>
               </tr>
