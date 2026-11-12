@@ -20,12 +20,16 @@ app.use(express.urlencoded({ extended: true }));
 const cookieSecret = process.env.COOKIE_SECRET || crypto.randomBytes(32).toString('hex');
 app.use(cookieParser(cookieSecret));
 app.use(async (req, res, next) => {
+  const isDbRoute = req.path.startsWith('/api') || req.path.startsWith('/download');
   try {
-    await db.ready;
+    await db.ensureReady();
     next();
   } catch (error) {
     console.error('Database initialization failed:', error.message);
-    res.status(503).json({ success: false, message: 'Database belum siap.' });
+    if (!isDbRoute) {
+      return next();
+    }
+    res.status(503).json({ success: false, message: 'Database belum siap. Sedang menyambungkan ulang, silakan coba beberapa detik lagi.' });
   }
 });
 
@@ -161,12 +165,7 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Main public landing page (Liquid Glass + PWA + Push + Reviews)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'landing-liquid.html'));
-});
-
-// Serve static assets from public
+// Serve static assets from public (index.html is the main web)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // -------------------------------------------------------------
@@ -1308,7 +1307,7 @@ app.post('/api/versions', requireAuth, async (req, res) => {
       pushResult = await sendPushToAllSubscribers({
         title: `Update Baru POTER EDUGAMES ${version_code}`,
         body: `Versi ${version_code} (${file_size}) kini tersedia! Ketuk untuk mengunduh pembaruan.`,
-        url: '/landing-liquid.html#versi',
+        url: '/#versi',
         version: version_code
       });
     }
@@ -1425,7 +1424,7 @@ app.put('/api/versions/:id', requireAuth, async (req, res) => {
       pushResult = await sendPushToAllSubscribers({
         title: `Update Baru POTER EDUGAMES ${updated.version_code}`,
         body: `Versi ${updated.version_code} (${updated.file_size}) kini menjadi versi utama terbaru! Ketuk untuk mengunduh.`,
-        url: '/landing-liquid.html#versi',
+        url: '/#versi',
         version: updated.version_code
       });
     }
@@ -1744,7 +1743,7 @@ app.post('/api/push/test', async (req, res) => {
       JSON.stringify({
         title: 'Notifikasi POTER EDUGAMES Aktif!',
         body: `Perangkat ini siap menerima info update versi terbaru (saat ini: ${versionText}).`,
-        url: '/landing-liquid.html#versi',
+        url: '/#versi',
         version: versionText,
         icon: '/assets/poter-logo.png'
       })

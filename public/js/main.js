@@ -687,4 +687,310 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadDynamicVersions();
+
+  // ------------------------------------------------------------------
+  // PWA REGISTRATION & INSTALL PROMPT
+  // ------------------------------------------------------------------
+  let swRegistration = null;
+  let deferredInstallPrompt = null;
+  const btnInstallPwa = document.getElementById('btnInstallPwa');
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => {
+        swRegistration = reg;
+        syncPushSubscriptionUi();
+      })
+      .catch((err) => console.warn('Service Worker gagal terdaftar:', err));
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (btnInstallPwa) btnInstallPwa.style.display = 'inline-flex';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    if (btnInstallPwa) {
+      btnInstallPwa.textContent = 'Web App Terpasang';
+      btnInstallPwa.disabled = true;
+    }
+  });
+
+  if (btnInstallPwa) {
+    btnInstallPwa.addEventListener('click', async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice.outcome === 'accepted') deferredInstallPrompt = null;
+        return;
+      }
+      const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      if (isIos) {
+        alert('Untuk memasang di iPhone/iPad: Ketuk ikon Bagikan (Share) di Safari, lalu pilih "Tambah ke Layar Utama" (Add to Home Screen).');
+      } else if (window.matchMedia('(display-mode: standalone)').matches) {
+        alert('POTER EDUGAMES sudah terpasang sebagai Web App di perangkat ini.');
+      } else {
+        alert('Buka menu browser (titik tiga di pojok kanan atas), lalu pilih "Instal aplikasi" atau "Tambahkan ke layar utama".');
+      }
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // WEB PUSH NOTIFICATIONS (UPDATE VERSI KE HP & DEVICE LAIN)
+  // ------------------------------------------------------------------
+  const btnTogglePush = document.getElementById('btnTogglePush');
+  const btnTestPush = document.getElementById('btnTestPush');
+  const pushStatusText = document.getElementById('pushStatusText');
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  async function getActiveSubscription() {
+    if (!swRegistration || !('PushManager' in window)) return null;
+    return swRegistration.pushManager.getSubscription();
+  }
+
+  async function syncPushSubscriptionUi() {
+    if (!btnTogglePush || !pushStatusText) return;
+    if (!('Notification' in window) || !('PushManager' in window)) {
+      pushStatusText.textContent = 'Browser ini belum mendukung Web Push Notification. Gunakan Chrome/Edge/Safari PWA versi terbaru.';
+      btnTogglePush.disabled = true;
+      return;
+    }
+    const sub = await getActiveSubscription();
+    if (sub) {
+      btnTogglePush.textContent = 'Notifikasi Aktif (Matikan)';
+      btnTogglePush.classList.add('subscribed');
+      if (btnTestPush) btnTestPush.style.display = 'inline-flex';
+      pushStatusText.textContent = 'Perangkat ini terdaftar. Anda akan langsung menerima notifikasi jika ada update versi APK baru.';
+    } else {
+      btnTogglePush.textContent = 'Aktifkan Notifikasi';
+      btnTogglePush.classList.remove('subscribed');
+      if (btnTestPush) btnTestPush.style.display = 'none';
+      pushStatusText.textContent = 'Aktifkan notifikasi agar HP atau perangkat ini langsung mendapat pemberitahuan saat versi APK terbaru dirilis.';
+    }
+  }
+
+  if (btnTogglePush) {
+    btnTogglePush.addEventListener('click', async () => {
+      if (!swRegistration) {
+        alert('Service Worker sedang disiapkan, mohon coba beberapa detik lagi.');
+        return;
+      }
+      btnTogglePush.disabled = true;
+      try {
+        const existingSub = await getActiveSubscription();
+        if (existingSub) {
+          await fetch('/api/push/unsubscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: existingSub.endpoint })
+          });
+          await existingSub.unsubscribe();
+          await syncPushSubscriptionUi();
+          return;
+        }
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          pushStatusText.textContent = 'Izin notifikasi ditolak di browser. Silakan izinkan notifikasi di setelan situs browser Anda.';
+          return;
+        }
+        const keyRes = await fetch('/api/push/vapid-public-key');
+        const keyJson = await keyRes.json();
+        if (!keyJson.success || !keyJson.publicKey) throw new Error('Kunci server notifikasi tidak tersedia.');
+        const newSub = await swRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(keyJson.publicKey)
+        });
+        const subRes = await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription: newSub.toJSON() })
+        });
+        const subJson = await subRes.json();
+        if (!subJson.success) throw new Error(subJson.message || 'Gagal berlangganan.');
+        await syncPushSubscriptionUi();
+      } catch (err) {
+        if (pushStatusText) pushStatusText.textContent = err.message || 'Gagal mengaktifkan notifikasi.';
+      } finally {
+        btnTogglePush.disabled = false;
+      }
+    });
+  }
+
+  if (btnTestPush) {
+    btnTestPush.addEventListener('click', async () => {
+      btnTestPush.disabled = true;
+      try {
+        const sub = await getActiveSubscription();
+        if (!sub) return;
+        const res = await fetch('/api/push/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        });
+        const json = await res.json();
+        if (pushStatusText) pushStatusText.textContent = json.message || 'Notifikasi uji coba dikirim!';
+      } catch (_) {
+        if (pushStatusText) pushStatusText.textContent = 'Gagal mengirim notifikasi uji coba.';
+      } finally {
+        btnTestPush.disabled = false;
+      }
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // SARAN & ULASAN DENGAN ANTI-SPAM (TANPA BINTANG)
+  // ------------------------------------------------------------------
+  function escapeReviewHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const reviewForm = document.getElementById('reviewForm');
+  const reviewMessage = document.getElementById('reviewMessage');
+  const reviewCharCount = document.getElementById('reviewCharCount');
+  const challengeQuestionEl = document.getElementById('reviewChallengeQuestion');
+  const challengeTokenEl = document.getElementById('reviewChallengeToken');
+  const challengeAnswerEl = document.getElementById('reviewChallengeAnswer');
+  const btnRefreshChallenge = document.getElementById('btnRefreshChallenge');
+  const reviewFeedback = document.getElementById('reviewFeedback');
+  const btnSubmitReview = document.getElementById('btnSubmitReview');
+  const reviewsListContainer = document.getElementById('reviewsListContainer');
+  const reviewsTotalCountEl = document.getElementById('reviewsTotalCount');
+
+  function getDeviceFingerprint() {
+    let fp = localStorage.getItem('poter_fp');
+    if (!fp) {
+      fp = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2));
+      localStorage.setItem('poter_fp', fp);
+    }
+    return fp;
+  }
+
+  async function loadReviewChallenge() {
+    if (!challengeQuestionEl || !challengeTokenEl) return;
+    try {
+      const res = await fetch('/api/reviews/challenge');
+      const json = await res.json();
+      if (json.success) {
+        challengeQuestionEl.textContent = json.question;
+        challengeTokenEl.value = json.token;
+        if (challengeAnswerEl) challengeAnswerEl.value = '';
+      }
+    } catch (_) {
+      challengeQuestionEl.textContent = 'Gagal memuat verifikasi';
+    }
+  }
+
+  async function loadReviews() {
+    if (!reviewsListContainer) return;
+    try {
+      const res = await fetch('/api/reviews');
+      const json = await res.json();
+      if (!json.success) return;
+
+      const total = json.stats?.total || 0;
+      if (reviewsTotalCountEl) reviewsTotalCountEl.textContent = `${total} Masukan Terverifikasi`;
+
+      if (!json.reviews || json.reviews.length === 0) {
+        reviewsListContainer.innerHTML = '<p class="reviews-empty-text">Belum ada saran atau ulasan. Jadilah orang tua atau guru pertama yang berbagi pengalaman!</p>';
+        return;
+      }
+
+      reviewsListContainer.innerHTML = json.reviews.map((item) => {
+        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+        return `
+          <article class="review-item">
+            <div class="review-item-head">
+              <div>
+                <div class="review-item-author">${escapeReviewHtml(item.name)}</div>
+                <div class="review-item-meta">${escapeReviewHtml(item.role)}${dateStr ? ' • ' + escapeReviewHtml(dateStr) : ''}</div>
+              </div>
+              <span class="reviews-count-pill">${escapeReviewHtml(item.category)}</span>
+            </div>
+            <p class="review-item-body">${escapeReviewHtml(item.message)}</p>
+          </article>
+        `;
+      }).join('');
+    } catch (_) {
+      reviewsListContainer.innerHTML = '<p class="reviews-empty-text">Gagal memuat daftar ulasan.</p>';
+    }
+  }
+
+  if (reviewMessage && reviewCharCount) {
+    reviewMessage.addEventListener('input', () => {
+      reviewCharCount.textContent = `(${reviewMessage.value.length}/500)`;
+    });
+  }
+
+  if (btnRefreshChallenge) btnRefreshChallenge.addEventListener('click', loadReviewChallenge);
+
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (reviewFeedback) {
+        reviewFeedback.className = 'review-feedback';
+        reviewFeedback.textContent = '';
+      }
+      if (btnSubmitReview) btnSubmitReview.disabled = true;
+
+      const payload = {
+        name: document.getElementById('reviewName')?.value || '',
+        role: document.getElementById('reviewRole')?.value || 'Orang Tua',
+        category: document.getElementById('reviewCategory')?.value || 'Ulasan',
+        message: reviewMessage?.value || '',
+        website: document.getElementById('reviewWebsite')?.value || '',
+        challengeToken: challengeTokenEl?.value || '',
+        challengeAnswer: challengeAnswerEl?.value || '',
+        fingerprint: getDeviceFingerprint()
+      };
+
+      try {
+        const res = await fetch('/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          if (reviewFeedback) {
+            reviewFeedback.className = 'review-feedback error';
+            reviewFeedback.textContent = json.message || 'Gagal mengirim ulasan.';
+          }
+          await loadReviewChallenge();
+          return;
+        }
+        if (reviewFeedback) {
+          reviewFeedback.className = 'review-feedback success';
+          reviewFeedback.textContent = json.message;
+        }
+        reviewForm.reset();
+        if (reviewCharCount) reviewCharCount.textContent = '(0/500)';
+        await Promise.all([loadReviews(), loadReviewChallenge()]);
+      } catch (_) {
+        if (reviewFeedback) {
+          reviewFeedback.className = 'review-feedback error';
+          reviewFeedback.textContent = 'Terjadi gangguan koneksi saat mengirim ulasan.';
+        }
+      } finally {
+        if (btnSubmitReview) btnSubmitReview.disabled = false;
+      }
+    });
+  }
+
+  loadReviewChallenge();
+  loadReviews();
 });

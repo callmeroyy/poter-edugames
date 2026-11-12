@@ -14,7 +14,7 @@ if (usePostgres) {
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
     max: Number(process.env.DB_POOL_MAX || 5),
     idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 10_000
+    connectionTimeoutMillis: 20_000
   });
 } else {
   const Database = require('better-sqlite3');
@@ -305,5 +305,31 @@ async function initialize() {
   await seedDefaults();
 }
 
-db.ready = initialize();
+let readyPromise = null;
+let isInitialized = false;
+
+db.ensureReady = function ensureReady() {
+  if (isInitialized) return Promise.resolve();
+  if (!readyPromise) {
+    readyPromise = initialize()
+      .then(() => {
+        isInitialized = true;
+      })
+      .catch((err) => {
+        readyPromise = null;
+        throw err;
+      });
+  }
+  return readyPromise;
+};
+
+Object.defineProperty(db, 'ready', {
+  get() {
+    return db.ensureReady();
+  }
+});
+
+// Warm up in background without crashing process on transient cold-start error
+db.ensureReady().catch(() => {});
+
 module.exports = db;

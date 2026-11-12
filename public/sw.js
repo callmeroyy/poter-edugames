@@ -1,11 +1,12 @@
 /* ==============================================================
    POTER EDUGAMES — SERVICE WORKER (PWA & PUSH NOTIFICATIONS)
    ============================================================== */
-const CACHE_NAME = 'poter-edugames-v1';
+const CACHE_NAME = 'poter-edugames-v2';
 const CORE_ASSETS = [
-  '/landing-liquid.html',
-  '/css/landing-liquid.css',
-  '/js/landing-liquid.js',
+  '/',
+  '/index.html',
+  '/css/styles.css',
+  '/js/main.js',
   '/assets/poter-logo.png',
   '/manifest.json'
 ];
@@ -45,7 +46,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req).then(cached => cached || caches.match('/landing-liquid.html')))
+        .catch(() => caches.match(req).then(cached => cached || caches.match('/')))
     );
     return;
   }
@@ -72,7 +73,7 @@ self.addEventListener('push', event => {
   let data = {
     title: 'Update Baru POTER EDUGAMES',
     body: 'Versi terbaru aplikasi telah tersedia. Ketuk untuk melihat pembaruan.',
-    url: '/landing-liquid.html#versi',
+    url: '/#versi',
     icon: '/assets/poter-logo.png'
   };
 
@@ -92,7 +93,7 @@ self.addEventListener('push', event => {
     vibrate: [180, 90, 180],
     tag: 'poter-version-update',
     renotify: true,
-    data: { url: data.url || '/landing-liquid.html#versi' },
+    data: { url: data.url || '/#versi' },
     actions: [
       { action: 'open_update', title: 'Lihat Versi Terbaru' }
     ]
@@ -103,7 +104,7 @@ self.addEventListener('push', event => {
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/landing-liquid.html#versi';
+  const targetUrl = event.notification.data?.url || '/#versi';
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {

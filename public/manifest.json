@@ -2,7 +2,7 @@
   "name": "POTER EDUGAMES — Game Edukasi Anak PAUD & SD",
   "short_name": "POTER Edugames",
   "description": "Aplikasi resmi POTER EDUGAMES untuk Android. Game edukasi 2D untuk melatih nalar, logika, dan ketelitian anak usia PAUD hingga SD tanpa iklan.",
-  "start_url": "/landing-liquid.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

@@ -3146,3 +3146,315 @@ select:focus-visible {
     height: 70px;
   }
 }
+
+
+/* ==============================================================
+   PUSH NOTIFICATION BANNER (HP & DEVICE LAIN)
+   ============================================================== */
+.push-notify-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 24px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow);
+}
+
+.push-notify-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.push-notify-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.push-notify-info h3 {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 4px;
+}
+
+.push-notify-info p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.push-notify-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-push-subscribe {
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-push-subscribe:hover {
+  transform: translateY(-1px);
+}
+
+.btn-push-subscribe.subscribed {
+  background: rgba(16, 185, 129, 0.16);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+[data-theme="dark"] .btn-push-subscribe.subscribed {
+  color: #34D399;
+}
+
+.btn-push-test {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background: var(--card-subtle-bg);
+  border: 1px solid var(--glass-border-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ==============================================================
+   SARAN & ULASAN (ANTI-SPAM, TANPA BINTANG)
+   ============================================================== */
+.reviews-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.review-form-card,
+.reviews-list-card {
+  padding: 26px;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.review-card-heading {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 2px;
+}
+
+.review-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.review-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.review-field label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.review-field input,
+.review-field select,
+.review-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  background: var(--card-subtle-bg);
+  border: 1px solid var(--glass-border-subtle);
+  outline: none;
+}
+
+.review-field input:focus,
+.review-field select:focus,
+.review-field textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14);
+}
+
+.review-antispam-box {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(2, 132, 199, 0.06);
+  border: 1px dashed rgba(2, 132, 199, 0.35);
+}
+
+.review-challenge-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-refresh-challenge {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background: var(--card-subtle-bg);
+  border: 1px solid var(--glass-border-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-submit-review {
+  padding: 13px 20px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  border: none;
+  cursor: pointer;
+}
+
+.btn-submit-review:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.review-feedback {
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-height: 18px;
+}
+
+.review-feedback.success {
+  color: #059669;
+}
+
+.review-feedback.error {
+  color: #DC2626;
+}
+
+.reviews-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--glass-border-subtle);
+}
+
+.reviews-count-pill {
+  padding: 5px 11px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(2, 132, 199, 0.12);
+  color: var(--cyan-accent);
+}
+
+.reviews-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 430px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.review-item {
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--card-subtle-bg);
+  border: 1px solid var(--glass-border-subtle);
+}
+
+.review-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.review-item-author {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.review-item-meta {
+  font-size: 0.76rem;
+  color: var(--text-subtle);
+}
+
+.review-item-body {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.reviews-empty-text {
+  font-size: 0.9rem;
+  color: var(--text-subtle);
+  text-align: center;
+  padding: 28px 12px;
+}
+
+@media (max-width: 900px) {
+  .reviews-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .push-notify-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .review-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .push-notify-actions,
+  .btn-push-subscribe,
+  .btn-push-test {
+    width: 100%;
+  }
+}
