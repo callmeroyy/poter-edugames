@@ -123,6 +123,34 @@ async function initializePostgres() {
       email TEXT NOT NULL, token_hash TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL,
       used_at TIMESTAMPTZ DEFAULT NULL, created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS reviews (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      role TEXT DEFAULT 'Orang Tua',
+      rating INTEGER NOT NULL DEFAULT 5,
+      category TEXT DEFAULT 'Ulasan',
+      message TEXT NOT NULL,
+      ip_hash TEXT,
+      fingerprint TEXT,
+      status TEXT DEFAULT 'approved',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id BIGSERIAL PRIMARY KEY,
+      endpoint TEXT UNIQUE NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      device_label TEXT,
+      user_agent TEXT,
+      ip_hash TEXT,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      last_notified_at TIMESTAMPTZ DEFAULT NULL
+    );
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
     ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT DEFAULT 'poteredugames@gmail.com';
     CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON access_logs(timestamp);
     CREATE INDEX IF NOT EXISTS idx_download_logs_verified ON download_logs(verified, timestamp);
@@ -132,6 +160,8 @@ async function initializePostgres() {
     CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash);
     CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at);
+    CREATE INDEX IF NOT EXISTS idx_reviews_ip_hash ON reviews(ip_hash, created_at);
   `);
 }
 
@@ -180,9 +210,39 @@ function initializeSqlite() {
       email TEXT NOT NULL, token_hash TEXT NOT NULL, expires_at DATETIME NOT NULL,
       used_at DATETIME DEFAULT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      role TEXT DEFAULT 'Orang Tua',
+      rating INTEGER NOT NULL DEFAULT 5,
+      category TEXT DEFAULT 'Ulasan',
+      message TEXT NOT NULL,
+      ip_hash TEXT,
+      fingerprint TEXT,
+      status TEXT DEFAULT 'approved',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      endpoint TEXT UNIQUE NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      device_label TEXT,
+      user_agent TEXT,
+      ip_hash TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_notified_at DATETIME DEFAULT NULL
+    );
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash);
     CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at);
+    CREATE INDEX IF NOT EXISTS idx_reviews_ip_hash ON reviews(ip_hash, created_at);
   `);
   const versionColumns = sqlite.prepare('PRAGMA table_info(app_versions)').all().map(column => column.name);
   if (!versionColumns.includes('download_enabled')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN download_enabled INTEGER NOT NULL DEFAULT 1');

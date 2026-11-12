@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const { issueSignedToken, del } = require('@vercel/blob');
 const { handleUploadPresigned } = require('@vercel/blob/client');
 const { sendPasswordResetEmail } = require('./mailer');
+const webpush = require('web-push');
 const db = require('./database');
 
 const app = express();
@@ -158,6 +159,11 @@ app.use(async (req, res, next) => {
     }
   }
   next();
+});
+
+// Main public landing page (Liquid Glass + PWA + Push + Reviews)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'landing-liquid.html'));
 });
 
 // Serve static assets from public
@@ -1297,7 +1303,21 @@ app.post('/api/versions', requireAuth, async (req, res) => {
       details: `Menambahkan versi ${version_code}${is_latest ? ' sebagai versi utama' : ''}`
     });
 
-    res.json({ success: true, message: `Versi ${version_code} berhasil ditambahkan.` });
+    let pushResult = null;
+    if (is_latest) {
+      pushResult = await sendPushToAllSubscribers({
+        title: `Update Baru POTER EDUGAMES ${version_code}`,
+        body: `Versi ${version_code} (${file_size}) kini tersedia! Ketuk untuk mengunduh pembaruan.`,
+        url: '/landing-liquid.html#versi',
+        version: version_code
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Versi ${version_code} berhasil ditambahkan.`,
+      pushNotified: pushResult
+    });
   } catch (err) {
     const isDuplicate = String(err.message).includes('UNIQUE constraint failed') ||
                         String(err.message).includes('duplicate key') ||
@@ -1399,7 +1419,18 @@ app.put('/api/versions/:id', requireAuth, async (req, res) => {
     }
 
     const updated = await db.prepare('SELECT * FROM app_versions WHERE id = ?').get(id);
-    res.json({ success: true, message: 'Versi berhasil diperbarui.', data: updated });
+
+    let pushResult = null;
+    if (hasLatestUpdate && is_latest && !version.is_latest) {
+      pushResult = await sendPushToAllSubscribers({
+        title: `Update Baru POTER EDUGAMES ${updated.version_code}`,
+        body: `Versi ${updated.version_code} (${updated.file_size}) kini menjadi versi utama terbaru! Ketuk untuk mengunduh.`,
+        url: '/landing-liquid.html#versi',
+        version: updated.version_code
+      });
+    }
+
+    res.json({ success: true, message: 'Versi berhasil diperbarui.', data: updated, pushNotified: pushResult });
   } catch (err) {
     const isDuplicate = String(err.message).includes('UNIQUE constraint failed') ||
                         String(err.message).includes('duplicate key') ||
@@ -1542,6 +1573,442 @@ app.post('/api/versions/empty-trash', requireAuth, async (req, res) => {
     res.json({ success: true, message: `${trashed.length} versi di sampah berhasil dihapus permanen dari database.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal mengosongkan sampah.', error: err.message });
+  }
+});
+
+// ==============================================================
+// WEB PUSH (NOTIFIKASI UPDATE VERSI KE HP & DEVICE LAIN)
+// ==============================================================
+let cachedVapidKeys = null;
+
+function hashClientIp(req) {
+  const rawIp = String(req.headers['x-forwarded-for'] || req.ip || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
+  return crypto.createHash('sha256').update(rawIp).digest('hex').slice(0, 32);
+}
+
+async function getVapidKeys() {
+  if (cachedVapidKeys) return cachedVapidKeys;
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    cachedVapidKeys = {
+      publicKey: process.env.VAPID_PUBLIC_KEY.trim(),
+      privateKey: process.env.VAPID_PRIVATE_KEY.trim()
+    };
+  } else {
+    const pubRow = await db.prepare("SELECT value FROM app_settings WHERE key = 'vapid_public_key'").get();
+    const privRow = await db.prepare("SELECT value FROM app_settings WHERE key = 'vapid_private_key'").get();
+    if (pubRow?.value && privRow?.value) {
+      cachedVapidKeys = { publicKey: pubRow.value, privateKey: privRow.value };
+    } else {
+      const generated = webpush.generateVAPIDKeys();
+      await db.prepare(`
+        INSERT INTO app_settings (key, value) VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+      `).run('vapid_public_key', generated.publicKey);
+      await db.prepare(`
+        INSERT INTO app_settings (key, value) VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+      `).run('vapid_private_key', generated.privateKey);
+      cachedVapidKeys = generated;
+    }
+  }
+  webpush.setVapidDetails('mailto:poteredugames@gmail.com', cachedVapidKeys.publicKey, cachedVapidKeys.privateKey);
+  return cachedVapidKeys;
+}
+
+async function sendPushToAllSubscribers(payload) {
+  try {
+    await getVapidKeys();
+    const subs = await db.prepare('SELECT id, endpoint, p256dh, auth FROM push_subscriptions').all();
+    if (!subs.length) return { sent: 0, failed: 0, total: 0 };
+
+    const message = JSON.stringify({
+      title: payload.title || 'Update Baru POTER EDUGAMES',
+      body: payload.body || 'Versi terbaru telah tersedia!',
+      url: payload.url || '/landing-liquid.html#versi',
+      version: payload.version || '',
+      icon: '/assets/poter-logo.png'
+    });
+
+    let sent = 0;
+    let failed = 0;
+    const results = await Promise.allSettled(
+      subs.map(sub =>
+        webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          message
+        ).then(async () => {
+          sent++;
+          await db.prepare('UPDATE push_subscriptions SET last_notified_at = CURRENT_TIMESTAMP WHERE id = ?').run(sub.id);
+        }).catch(async err => {
+          failed++;
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+          }
+          throw err;
+        })
+      )
+    );
+    return { sent, failed, total: results.length };
+  } catch (err) {
+    console.error('Push broadcast error:', err.message);
+    return { sent: 0, failed: 0, total: 0, error: err.message };
+  }
+}
+
+app.get('/api/push/vapid-public-key', async (req, res) => {
+  try {
+    const keys = await getVapidKeys();
+    res.json({ success: true, publicKey: keys.publicKey });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal memuat kunci notifikasi.' });
+  }
+});
+
+app.get('/api/push/status', async (req, res) => {
+  try {
+    const row = await db.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').get();
+    res.json({ success: true, subscriberCount: Number(row?.count || 0) });
+  } catch (err) {
+    res.status(500).json({ success: false, subscriberCount: 0 });
+  }
+});
+
+app.post('/api/push/subscribe', async (req, res) => {
+  try {
+    const { subscription, device_label } = req.body || {};
+    const endpoint = String(subscription?.endpoint || '').trim();
+    const p256dh = String(subscription?.keys?.p256dh || '').trim();
+    const auth = String(subscription?.keys?.auth || '').trim();
+
+    if (!endpoint || !p256dh || !auth) {
+      return res.status(400).json({ success: false, message: 'Data langganan notifikasi tidak lengkap.' });
+    }
+
+    const ua = String(req.headers['user-agent'] || '').slice(0, 250);
+    const parsed = parseUserAgent(ua);
+    const label = String(device_label || `${parsed.os} • ${parsed.browser}`).slice(0, 80);
+    const ipHash = hashClientIp(req);
+
+    const existing = await db.prepare('SELECT id FROM push_subscriptions WHERE endpoint = ?').get(endpoint);
+    if (existing) {
+      await db.prepare(`
+        UPDATE push_subscriptions SET p256dh = ?, auth = ?, device_label = ?, user_agent = ?, ip_hash = ?
+        WHERE id = ?
+      `).run(p256dh, auth, label, ua, ipHash, existing.id);
+    } else {
+      await db.prepare(`
+        INSERT INTO push_subscriptions (endpoint, p256dh, auth, device_label, user_agent, ip_hash)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(endpoint, p256dh, auth, label, ua, ipHash);
+    }
+
+    const row = await db.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').get();
+    res.json({
+      success: true,
+      message: 'Notifikasi update versi aktif di perangkat ini.',
+      totalSubscribers: Number(row?.count || 0)
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal mendaftarkan notifikasi perangkat.' });
+  }
+});
+
+app.post('/api/push/unsubscribe', async (req, res) => {
+  try {
+    const endpoint = String(req.body?.endpoint || '').trim();
+    if (!endpoint) return res.status(400).json({ success: false, message: 'Endpoint wajib diisi.' });
+    await db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
+    res.json({ success: true, message: 'Notifikasi perangkat dinonaktifkan.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menonaktifkan notifikasi.' });
+  }
+});
+
+app.post('/api/push/test', async (req, res) => {
+  try {
+    await getVapidKeys();
+    const endpoint = String(req.body?.endpoint || '').trim();
+    if (!endpoint) {
+      return res.status(400).json({ success: false, message: 'Perangkat belum berlangganan notifikasi.' });
+    }
+    const sub = await db.prepare('SELECT id, endpoint, p256dh, auth FROM push_subscriptions WHERE endpoint = ?').get(endpoint);
+    if (!sub) {
+      return res.status(404).json({ success: false, message: 'Langganan perangkat tidak ditemukan. Aktifkan notifikasi terlebih dahulu.' });
+    }
+
+    const latest = await db.prepare('SELECT version_code FROM app_versions WHERE is_latest = 1 AND deleted_at IS NULL LIMIT 1').get();
+    const versionText = latest?.version_code || 'v1.1.0';
+
+    await webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      JSON.stringify({
+        title: 'Notifikasi POTER EDUGAMES Aktif!',
+        body: `Perangkat ini siap menerima info update versi terbaru (saat ini: ${versionText}).`,
+        url: '/landing-liquid.html#versi',
+        version: versionText,
+        icon: '/assets/poter-logo.png'
+      })
+    );
+
+    res.json({ success: true, message: 'Notifikasi uji coba berhasil dikirim ke perangkat ini!' });
+  } catch (err) {
+    if (err.statusCode === 404 || err.statusCode === 410) {
+      const endpoint = String(req.body?.endpoint || '').trim();
+      if (endpoint) await db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(endpoint);
+      return res.status(410).json({ success: false, message: 'Langganan browser sudah kedaluwarsa. Silakan aktifkan ulang.' });
+    }
+    res.status(500).json({ success: false, message: 'Gagal mengirim notifikasi uji coba: ' + err.message });
+  }
+});
+
+app.post('/api/admin/push/broadcast', requireAuth, async (req, res) => {
+  try {
+    const title = String(req.body?.title || '').trim();
+    const body = String(req.body?.body || '').trim();
+    const version = String(req.body?.version || '').trim();
+    if (!title || !body) {
+      return res.status(400).json({ success: false, message: 'Judul dan isi notifikasi wajib diisi.' });
+    }
+    const result = await sendPushToAllSubscribers({
+      title,
+      body,
+      version,
+      url: '/landing-liquid.html#versi'
+    });
+    await recordAdminAudit(req, {
+      category: 'push_notifications',
+      action: 'BROADCAST_UPDATE_PUSH',
+      details: `Mengirim notifikasi "${title}" ke ${result.sent}/${result.total} perangkat`
+    });
+    res.json({ success: true, message: `Notifikasi dikirim ke ${result.sent} perangkat.`, result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menyiarkan notifikasi.' });
+  }
+});
+
+// ==============================================================
+// SARAN & ULASAN DENGAN ANTI-SPAM MULTI-LAPIS
+// ==============================================================
+const usedChallengeNonces = new Map();
+
+function pruneExpiredNonces() {
+  const now = Date.now();
+  for (const [nonce, exp] of usedChallengeNonces.entries()) {
+    if (exp < now) usedChallengeNonces.delete(nonce);
+  }
+}
+
+function signChallengePayload(payload) {
+  const secret = process.env.COOKIE_SECRET || cookieSecret;
+  const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const sig = crypto.createHmac('sha256', secret).update(encoded).digest('base64url');
+  return `${encoded}.${sig}`;
+}
+
+function verifyReviewChallenge(token, userAnswer) {
+  if (!token || typeof token !== 'string' || !token.includes('.')) {
+    return { ok: false, reason: 'Token verifikasi tidak valid. Muat ulang pertanyaan.' };
+  }
+  const [encoded, sig] = token.split('.');
+  const secret = process.env.COOKIE_SECRET || cookieSecret;
+  const expectedSig = crypto.createHmac('sha256', secret).update(encoded).digest('base64url');
+  if (sig.length !== expectedSig.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
+    return { ok: false, reason: 'Verifikasi anti-spam tidak cocok.' };
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+  } catch {
+    return { ok: false, reason: 'Data verifikasi rusak.' };
+  }
+
+  const now = Date.now();
+  if (now - Number(payload.iat) > 15 * 60 * 1000) {
+    return { ok: false, reason: 'Pertanyaan verifikasi kedaluwarsa. Silakan muat ulang.' };
+  }
+  if (now - Number(payload.iat) < 3000) {
+    return { ok: false, reason: 'Pengiriman terlalu cepat. Mohon baca formulir sejenak sebelum mengirim.' };
+  }
+  pruneExpiredNonces();
+  if (usedChallengeNonces.has(payload.nonce)) {
+    return { ok: false, reason: 'Pertanyaan verifikasi sudah digunakan. Gunakan pertanyaan baru.' };
+  }
+  if (Number(userAnswer) !== Number(payload.ans)) {
+    return { ok: false, reason: 'Jawaban hitungan verifikasi salah. Coba lagi.' };
+  }
+
+  usedChallengeNonces.set(payload.nonce, Number(payload.iat) + 15 * 60 * 1000);
+  return { ok: true };
+}
+
+function sanitizePlainText(str = '') {
+  return String(str).replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+}
+
+function containsSpamSignals(text = '') {
+  if (/(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|xyz|info|biz|ru|cn|click|top)\b)/i.test(text)) {
+    return 'Tautan atau URL tidak diperbolehkan pada kolom ulasan untuk mencegah spam.';
+  }
+  if (/(.)\1{7,}/.test(text)) {
+    return 'Teks terdeteksi mengandung pengulangan karakter berlebihan.';
+  }
+  return null;
+}
+
+app.get('/api/reviews/challenge', (req, res) => {
+  const a = crypto.randomInt(2, 10);
+  const b = crypto.randomInt(1, 9);
+  const nonce = crypto.randomBytes(10).toString('hex');
+  const token = signChallengePayload({ ans: a + b, iat: Date.now(), nonce });
+  res.json({ success: true, question: `Berapa ${a} + ${b}?`, token });
+});
+
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const rows = await db.prepare(`
+      SELECT id, name, role, rating, category, message, created_at
+      FROM reviews
+      WHERE status = 'approved'
+      ORDER BY created_at DESC, id DESC
+      LIMIT 30
+    `).all();
+    const stats = await db.prepare(`
+      SELECT COUNT(*) AS total, COALESCE(AVG(rating), 0) AS avg_rating
+      FROM reviews
+      WHERE status = 'approved'
+    `).get();
+    res.json({
+      success: true,
+      reviews: rows,
+      stats: {
+        total: Number(stats?.total || 0),
+        averageRating: Number(Number(stats?.avg_rating || 0).toFixed(1))
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal memuat ulasan.' });
+  }
+});
+
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const {
+      name, role, rating, category, message,
+      website, challengeToken, challengeAnswer, fingerprint
+    } = req.body || {};
+
+    // 1. Honeypot check (hidden input filled by bots)
+    if (website && String(website).trim() !== '') {
+      return res.status(400).json({ success: false, message: 'Permintaan ditolak oleh filter keamanan.' });
+    }
+
+    // 2. Signed math challenge + minimum human fill time check
+    const challengeCheck = verifyReviewChallenge(challengeToken, challengeAnswer);
+    if (!challengeCheck.ok) {
+      return res.status(400).json({ success: false, message: challengeCheck.reason });
+    }
+
+    // 3. Input validation & sanitization
+    const cleanName = sanitizePlainText(name);
+    const cleanMessage = sanitizePlainText(message);
+    const cleanRole = ['Orang Tua', 'Guru / Pendidik', 'Lainnya'].includes(role) ? role : 'Orang Tua';
+    const cleanCategory = ['Ulasan', 'Saran', 'Laporan'].includes(category) ? category : 'Ulasan';
+    const numRating = Math.min(5, Math.max(1, parseInt(rating, 10) || 5));
+
+    if (cleanName.length < 2 || cleanName.length > 50) {
+      return res.status(400).json({ success: false, message: 'Nama harus antara 2 hingga 50 karakter.' });
+    }
+    if (cleanMessage.length < 10 || cleanMessage.length > 500) {
+      return res.status(400).json({ success: false, message: 'Saran atau ulasan minimal 10 karakter dan maksimal 500 karakter.' });
+    }
+
+    const spamReason = containsSpamSignals(`${cleanName} ${cleanMessage}`);
+    if (spamReason) {
+      return res.status(400).json({ success: false, message: spamReason });
+    }
+
+    // 4. Rate limiting per IP & fingerprint (cooldown 3 minutes + max 3 per 24h)
+    const ipHash = hashClientIp(req);
+    const cleanFp = String(fingerprint || '').slice(0, 64);
+
+    const recentSame = await db.prepare(`
+      SELECT id FROM reviews
+      WHERE (ip_hash = ? OR (fingerprint != '' AND fingerprint = ?))
+        AND created_at >= datetime('now', '-3 minutes')
+      LIMIT 1
+    `).get(ipHash, cleanFp);
+    if (recentSame) {
+      return res.status(429).json({
+        success: false,
+        message: 'Mohon tunggu 3 menit sebelum mengirim saran atau ulasan berikutnya.'
+      });
+    }
+
+    const dailyCountRow = await db.prepare(`
+      SELECT COUNT(*) AS count FROM reviews
+      WHERE ip_hash = ? AND created_at >= datetime('now', '-1 day')
+    `).get(ipHash);
+    if (Number(dailyCountRow?.count || 0) >= 3) {
+      return res.status(429).json({
+        success: false,
+        message: 'Batas pengiriman harian (maksimal 3 ulasan per hari) telah tercapai.'
+      });
+    }
+
+    // 5. Duplicate message prevention (last 24 hours)
+    const duplicate = await db.prepare(`
+      SELECT id FROM reviews
+      WHERE LOWER(message) = LOWER(?) AND created_at >= datetime('now', '-1 day')
+      LIMIT 1
+    `).get(cleanMessage);
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: 'Saran atau ulasan yang sama sudah pernah dikirim sebelumnya.'
+      });
+    }
+
+    await db.prepare(`
+      INSERT INTO reviews (name, role, rating, category, message, ip_hash, fingerprint, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'approved')
+    `).run(cleanName, cleanRole, numRating, cleanCategory, cleanMessage, ipHash, cleanFp);
+
+    res.json({
+      success: true,
+      message: 'Terima kasih! Saran dan ulasan Anda telah berhasil diterbitkan.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menyimpan ulasan.', error: err.message });
+  }
+});
+
+app.get('/api/admin/reviews', requireAuth, async (req, res) => {
+  try {
+    const rows = await db.prepare(`
+      SELECT id, name, role, category, message, status, created_at
+      FROM reviews
+      ORDER BY created_at DESC, id DESC
+      LIMIT 100
+    `).all();
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal memuat daftar saran & ulasan.' });
+  }
+});
+
+app.delete('/api/admin/reviews/:id', requireAuth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    await db.prepare('DELETE FROM reviews WHERE id = ?').run(id);
+    await recordAdminAudit(req, {
+      category: 'reviews_moderation',
+      action: 'DELETE_REVIEW',
+      details: `Menghapus ulasan ID #${id}`
+    });
+    res.json({ success: true, message: 'Ulasan berhasil dihapus.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal menghapus ulasan.' });
   }
 });
 

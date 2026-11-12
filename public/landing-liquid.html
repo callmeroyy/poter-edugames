@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POTER EDUGAMES — Game Edukasi Nalar Anak PAUD & SD Resmi</title>
+  <meta name="description" content="Unduh berkas resmi APK POTER EDUGAMES untuk Android. Game edukasi 2D untuk melatih nalar, logika, dan ketelitian anak usia PAUD hingga SD tanpa iklan komersial.">
+  <meta name="theme-color" content="#0284C7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/assets/poter-logo.png">
+  <link rel="apple-touch-icon" href="/assets/poter-logo.png">
+  <link rel="stylesheet" href="/css/landing-liquid.css">
+</head>
+<body>
+
+  <!-- Hidden SVG Optical Filters for Real Physical Refraction (Apple Liquid Glass Style) -->
+  <svg class="svg-optical-filters" style="position: absolute; width: 0; height: 0; pointer-events: none;" aria-hidden="true">
+    <defs>
+      <filter id="liquidGlassRefract" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence id="ambientTurbulence" type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise" />
+        <feDisplacementMap id="ambientDisplacement" in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Ambient Optical Light Orbs (Showing through the clear crystal glass) -->
+  <div class="ambient-optical-bg" aria-hidden="true">
+    <div class="optical-orb orb-1"></div>
+    <div class="optical-orb orb-2"></div>
+    <div class="optical-orb orb-3"></div>
+  </div>
+
+  <!-- Floating Liquid Glass Navbar -->
+  <header class="site-header">
+    <nav class="nav-glass-bar" aria-label="Navigasi Utama">
+      <a href="/" class="brand-wrap">
+        <img src="/assets/poter-logo.png" width="40" height="40" alt="Logo POTER EDUGAMES">
+        <div class="brand-text">
+          <strong>POTER EDUGAMES</strong>
+          <small>PT Poter Teknik Nusantara</small>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <a href="#hero" class="nav-link">Beranda</a>
+        <a href="#permainan" class="nav-link">Modul Game</a>
+        <a href="#orang-tua" class="nav-link">Pantau Anak</a>
+        <a href="#versi" class="nav-link">Versi APK</a>
+        <a href="#ulasan" class="nav-link">Saran & Ulasan</a>
+        <a href="#cara-pasang" class="nav-link">Cara Pasang</a>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Day / Night Toggle -->
+        <button type="button" class="theme-toggle-btn" id="themeToggle" aria-label="Ganti mode siang dan malam" title="Ganti Mode Siang / Malam">
+          <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <a href="/download" class="btn-nav-download" data-source="Navigasi Atas">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Unduh APK
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO SECTION (TANPA HOLOGRAM — SMARTPHONE REALISTIS DI ATAS KACA CAIR) -->
+    <section class="hero-section" id="hero">
+      <div class="container hero-grid">
+        
+        <!-- Left: Headline & Actions -->
+        <div class="hero-left-copy">
+          <div class="hero-badge">
+            <span class="hero-badge-dot" aria-hidden="true"></span>
+            Aplikasi Resmi Android • PAUD hingga SD
+          </div>
+
+          <h1 class="hero-title">
+            Unduh <span>POTER EDUGAMES</span>
+          </h1>
+
+          <p class="hero-desc">
+            Game edukasi 2D interaktif ramah anak untuk melatih nalar, logika, dan ketelitian anak usia PAUD hingga SD. Dirancang khusus tanpa iklan komersial agar anak belajar dengan aman dan riang.
+          </p>
+
+          <!-- Glass Specs Grid -->
+          <div class="specs-glass-row">
+            <div class="spec-glass-card">
+              <small>Versi Stabil</small>
+              <strong>v1.1.0 Resmi</strong>
+            </div>
+            <div class="spec-glass-card">
+              <small>Ukuran Berkas</small>
+              <strong>62.4 MB</strong>
+            </div>
+            <div class="spec-glass-card">
+              <small>Kompatibilitas</small>
+              <strong>Android 8.0+</strong>
+            </div>
+          </div>
+
+          <!-- CTA Buttons -->
+          <div class="hero-cta-group">
+            <a href="/download" class="btn-hero-primary" data-source="Tombol Hero Utama">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Unduh APK Sekarang (v1.1.0)
+            </a>
+
+            <div class="hero-secondary-actions">
+              <button type="button" class="btn-glass-sub" id="btnOpenQr">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Pindai QR Ponsel
+              </button>
+
+              <button type="button" class="btn-glass-sub" id="btnInstallPwa">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                </svg>
+                Pasang Web App (PWA)
+              </button>
+
+              <a href="https://api.whatsapp.com/send?text=Ayo%20unduh%20game%20edukasi%20resmi%20POTER%20EDUGAMES%20untuk%20anak%20PAUD%20hingga%20SD!" id="whatsappShareBtn" target="_blank" rel="noopener noreferrer" class="btn-glass-sub">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                </svg>
+                Bagikan ke WhatsApp
+              </a>
+            </div>
+          </div>
+
+          <div class="hero-jenjang-tags">
+            <span>Tingkat jenjang:</span>
+            <span class="tag-jenjang tag-paud">PAUD</span>
+            <span class="tag-jenjang tag-tk">TK</span>
+            <span class="tag-jenjang tag-sd">SD</span>
+          </div>
+        </div>
+
+        <!-- Right: Realistic Smartphone Mockup on Liquid Glass -->
+        <div class="hero-smartphone-stage" id="smartphoneStage" aria-label="Pratinjau Interaktif Antarmuka Game di Ponsel Android">
+          <div class="smartphone-device">
+            <!-- Notch & Sensors -->
+            <div class="smartphone-notch" aria-hidden="true">
+              <span class="notch-camera"></span>
+              <span class="notch-speaker"></span>
+            </div>
+
+            <!-- Screen: Real 2D Educational Game Preview -->
+            <div class="smartphone-screen">
+              <div class="screen-app-bar">
+                <div class="screen-logo-badge">
+                  <img src="/assets/poter-logo.png" width="22" height="22" alt="">
+                  <span>POTER</span>
+                </div>
+                <div class="screen-stars-pill">★ 48 Poin</div>
+              </div>
+
+              <!-- Interactive Game Scene Container -->
+              <div class="active-game-scene">
+                <span class="game-title-tag" id="gameSceneTag">Modul Memori 2D</span>
+                <strong class="game-name-main" id="gameSceneName">Pasangkan Kartu Bergambar</strong>
+                
+                <div class="scene-cards-grid" id="sceneCardsContainer">
+                  <!-- Injected via JavaScript -->
+                </div>
+
+                <small class="scene-caption-hint" id="sceneCaptionHint">Ketuk kartu di atas untuk simulasi permainan</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Game Preview Mode Switcher -->
+          <div class="game-switcher-tabs" role="tablist" aria-label="Pilih Pratinjau Permainan">
+            <button type="button" class="game-tab-btn active" data-game="pasangkan" role="tab">Pasangkan</button>
+            <button type="button" class="game-tab-btn" data-game="kelompokkan" role="tab">Memilah Kue</button>
+            <button type="button" class="game-tab-btn" data-game="timbangan" role="tab">Timbangan Pasar</button>
+            <button type="button" class="game-tab-btn" data-game="bukajalan" role="tab">Buka Jalan</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION: MODUL PERMAINAN EDUKASI (5 LIQUID GLASS CARDS) -->
+    <section class="section" id="permainan">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Modul & Isi Game</span>
+          <h2 class="section-title">Banyak cara seru untuk melatih nalar anak</h2>
+          <p class="section-desc">
+            Setiap modul dirancang sesuai fase tumbuh kembang anak untuk mengasah konsentrasi, penalaran logis, dan daya spasial.
+          </p>
+        </div>
+
+        <div class="game-modules-grid">
+          <!-- Card 1: Pasangkan -->
+          <article class="liquid-game-card">
+            <div class="module-icon-wrap" aria-hidden="true">🃏</div>
+            <h3>Pasangkan</h3>
+            <span class="module-subtag">Kartu Memori 2D</span>
+            <p>Mencocokkan pasangan kartu gambar edukatif untuk melatih konsentrasi, visualisasi, dan daya ingat jangka pendek anak.</p>
+          </article>
+
+          <!-- Card 2: Mengelompokkan -->
+          <article class="liquid-game-card">
+            <div class="module-icon-wrap" aria-hidden="true">🧁</div>
+            <h3>Mengelompokkan</h3>
+            <span class="module-subtag">Memilah Kue & Warna</span>
+            <p>Memisahkan aneka kue berdasarkan kategori warna, bentuk, dan ukuran agar anak terbiasa mengklasifikasikan objek secara runut.</p>
+          </article>
+
+          <!-- Card 3: Timbangan Pasar -->
+          <article class="liquid-game-card">
+            <div class="module-icon-wrap" aria-hidden="true">⚖️</div>
+            <h3>Timbangan Pasar</h3>
+            <span class="module-subtag">Bandingkan Berat & Ukuran</span>
+            <p>Memahami konsep seimbang, lebih berat, dan lebih ringan menggunakan timbangan interaktif bergaya pasar tradisional yang riang.</p>
+          </article>
+
+          <!-- Card 4: Buka Jalan -->
+          <article class="liquid-game-card">
+            <div class="module-icon-wrap" aria-hidden="true">🚗</div>
+            <h3>Buka Jalan</h3>
+            <span class="module-subtag">Strategi & Pemecahan Masalah</span>
+            <p>Menggeser balok rintangan untuk membuka jalur mobil, melatih perencanaan langkah strategis sejak dini.</p>
+          </article>
+
+          <!-- Card 5: Rapikan! -->
+          <article class="liquid-game-card">
+            <div class="module-icon-wrap" aria-hidden="true">📦</div>
+            <h3>Rapikan!</h3>
+            <span class="module-subtag">Kemampuan Spasial Anak</span>
+            <p>Menata barang sekolah dan mainan ke dalam rak yang tepat untuk mengasah kesadaran ruang, keteraturan, dan kerapian.</p>
+          </article>
+
+          <!-- Card 6: Pengembangan Masa Depan -->
+          <article class="liquid-game-card">
+            <div class="module-icon-wrap" aria-hidden="true">✨</div>
+            <h3>Segera Hadir</h3>
+            <span class="module-subtag">Pembaruan Berkala</span>
+            <p>Tim pendidik PT Poter Teknik Nusantara terus mengembangkan modul mini game nalar baru pada setiap pembaruan APK.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: KHUSUS ORANG TUA & PENDIDIK -->
+    <section class="section" id="orang-tua">
+      <div class="container">
+        <div class="parent-monitor-card">
+          <div class="parent-monitor-copy">
+            <span class="hero-badge" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #BAE6FD;">
+              Khusus Orang Tua & Pendidik
+            </span>
+            <h2>Pantau perkembangan belajar anak secara transparan</h2>
+            <p>
+              Satu portal terpadu untuk mendampingi aktivitas bermain anak: ketahui waktu layar, pantau tingkat penyelesaian modul, dan lihat capaian nalar anak.
+            </p>
+
+            <ul class="parent-checklist">
+              <li>
+                <span class="check-pill" aria-hidden="true">✓</span>
+                <span>Lihat riwayat game dan level yang diselesaikan anak</span>
+              </li>
+              <li>
+                <span class="check-pill" aria-hidden="true">✓</span>
+                <span>Ketahui total durasi waktu belajar harian anak</span>
+              </li>
+              <li>
+                <span class="check-pill" aria-hidden="true">✓</span>
+                <span>Akses dashboard orang tua dengan kredensial mandiri yang aman</span>
+              </li>
+            </ul>
+
+            <a href="/admin" class="btn-open-parent-dash">
+              Buka Dashboard Pemantau Orang Tua
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </a>
+          </div>
+
+          <!-- Parent Dashboard Graphic Mockup -->
+          <div class="parent-dash-mock" aria-label="Pratinjau Ringkasan Belajar Anak">
+            <div class="dash-mock-header">
+              <strong style="font-size: 0.92rem;">Ringkasan Belajar Anak</strong>
+              <small style="color: #0284C7; font-weight: 700;">Minggu Ini</small>
+            </div>
+
+            <div class="dash-mock-stats">
+              <div class="mock-stat-box">
+                <strong>18</strong>
+                <small>Level Selesai</small>
+              </div>
+              <div class="mock-stat-box">
+                <strong>42m</strong>
+                <small>Waktu Main</small>
+              </div>
+              <div class="mock-stat-box">
+                <strong>52 ★</strong>
+                <small>Total Bintang</small>
+              </div>
+            </div>
+
+            <div class="mock-chart-bars" aria-label="Grafik durasi belajar mingguan">
+              <div class="mock-bar" style="height: 40%;" title="Senin"></div>
+              <div class="mock-bar" style="height: 60%;" title="Selasa"></div>
+              <div class="mock-bar" style="height: 45%;" title="Rabu"></div>
+              <div class="mock-bar" style="height: 80%;" title="Kamis"></div>
+              <div class="mock-bar active" style="height: 100%;" title="Jumat"></div>
+              <div class="mock-bar" style="height: 70%;" title="Sabtu"></div>
+              <div class="mock-bar" style="height: 85%;" title="Minggu"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: RIWAYAT & ARSIP VERSI APK + NOTIFIKASI UPDATE -->
+    <section class="section" id="versi">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Arsip & Pembaruan</span>
+          <h2 class="section-title">Semua versi aplikasi resmi</h2>
+          <p class="section-desc">Gunakan versi terbaru untuk mendapatkan perbaikan animasi dan mini game baru.</p>
+        </div>
+
+        <!-- Push Notification Banner for Mobile & Other Devices -->
+        <div class="push-notify-glass-bar" id="pushNotifyCard">
+          <div class="push-notify-info">
+            <div class="push-notify-icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+            <div>
+              <h3>Notifikasi Update Versi ke HP &amp; Perangkat Lain</h3>
+              <p id="pushStatusText">Aktifkan notifikasi agar HP atau komputer ini langsung mendapat pemberitahuan otomatis saat versi APK terbaru dirilis.</p>
+            </div>
+          </div>
+          <div class="push-notify-actions">
+            <button type="button" class="btn-push-subscribe" id="btnTogglePush">Aktifkan Notifikasi</button>
+            <button type="button" class="btn-push-test" id="btnTestPush" style="display: none;">Kirim Tes Notif</button>
+          </div>
+        </div>
+
+        <div class="versions-stack" id="versionsStack">
+          <!-- Versi v1.1.0 -->
+          <div class="version-glass-item highlight">
+            <div class="version-info-left">
+              <div class="version-tag-row">
+                <span class="version-code-num">v1.1.0</span>
+                <span class="version-badge-rec">TERBARU - DIREKOMENDASIKAN</span>
+              </div>
+              <div class="version-submeta">
+                7 November 2026 • 62.4 MB • Android 8.0 ke atas
+              </div>
+              <ul class="version-changelog-list">
+                <li>Game baru: Rapikan! (melatih kemampuan spasial dan klasifikasi objek).</li>
+                <li>Tombol petunjuk dan bantuan kini tersedia di pojok kanan atas layar.</li>
+                <li>Penyempurnaan performa pada perangkat Android dengan RAM 2GB.</li>
+              </ul>
+            </div>
+            <a href="/download/v1.1.0" class="btn-download-version" data-source="Arsip Versi v1.1.0">
+              Unduh APK v1.1.0
+            </a>
+          </div>
+
+          <!-- Versi v1.0.0 -->
+          <div class="version-glass-item">
+            <div class="version-info-left">
+              <div class="version-tag-row">
+                <span class="version-code-num">v1.0.0</span>
+              </div>
+              <div class="version-submeta">
+                24 Oktober 2026 • 55.0 MB • Android 8.0 ke atas
+              </div>
+              <ul class="version-changelog-list">
+                <li>Rilis perdana: Pasangkan, Mengelompokkan, Timbangan Pasar, dan Buka Jalan.</li>
+                <li>Grafis 2D ramah anak tanpa iklan komersial.</li>
+              </ul>
+            </div>
+            <a href="/download/v1.0.0" class="btn-download-version secondary" data-source="Arsip Versi v1.0.0">
+              Unduh APK v1.0.0
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: 3 LANGKAH PASANG DI ANDROID -->
+    <section class="section" id="cara-pasang">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Panduan Instalasi</span>
+          <h2 class="section-title">3 langkah mudah memasang di ponsel</h2>
+          <p class="section-desc">Pemasangan mandiri yang aman dan cepat langsung dari berkas resmi APK.</p>
+        </div>
+
+        <div class="steps-cards-grid">
+          <div class="step-liquid-card">
+            <div class="step-circle-badge">1</div>
+            <h3>Unduh Berkas APK</h3>
+            <p>Ketuk tombol Unduh APK pada halaman ini dan tunggu berkas selesai tersimpan di ponsel Android Anda.</p>
+          </div>
+
+          <div class="step-liquid-card">
+            <div class="step-circle-badge">2</div>
+            <h3>Izinkan Pemasangan</h3>
+            <p>Buka berkas unduhan. Jika muncul dialog keamanan Android, pilih Setelan lalu aktifkan "Izinkan dari sumber ini".</p>
+          </div>
+
+          <div class="step-liquid-card">
+            <div class="step-circle-badge">3</div>
+            <h3>Buka & Mulai Belajar</h3>
+            <p>Buka ikon POTER EDUGAMES dari layar utama ponsel Anda dan mulai dampingi anak bermain modul nalar.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: BANTUAN & FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Bantuan & Keamanan</span>
+          <h2 class="section-title">Hal yang sering ditanyakan</h2>
+          <p class="section-desc">Informasi seputar berkas APK mandiri dan dukungan teknis.</p>
+        </div>
+
+        <div class="faq-cards-grid">
+          <div class="faq-liquid-card">
+            <h3>Mengapa muncul peringatan saat memasang?</h3>
+            <p>Karena berkas APK dipasang secara mandiri dan tidak melalui Google Play Store, Android menampilkan konfirmasi kehati-hatian standar demi perlindungan pengguna.</p>
+          </div>
+
+          <div class="faq-liquid-card">
+            <h3>Apakah game ini aman untuk anak?</h3>
+            <p>Sangat aman. Seluruh konten dirancang khusus oleh PT Poter Teknik Nusantara tanpa iklan pihak ketiga, tanpa pembelian dalam aplikasi, dan ramah anak.</p>
+          </div>
+
+          <div class="faq-liquid-card">
+            <h3>Perlu bantuan teknis lebih lanjut?</h3>
+            <p>Tim pengembang dan pendidik POTER EDUGAMES siap membantu melalui email resmi kami di <a href="mailto:poteredugames@gmail.com" style="color: var(--cyan-bright); font-weight: 700;">poteredugames@gmail.com</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION: SARAN & ULASAN (ANTI-SPAM) -->
+    <section class="section" id="ulasan">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Masukan Pengguna</span>
+          <h2 class="section-title">Saran &amp; Ulasan Orang Tua dan Guru</h2>
+          <p class="section-desc">Bagikan pengalaman atau saran pengembangan game untuk anak. Dilindungi filter anti-spam otomatis.</p>
+        </div>
+
+        <div class="reviews-layout-grid">
+          <!-- Left: Form Saran & Ulasan -->
+          <form class="review-form-glass" id="reviewForm" novalidate>
+            <h3 class="review-panel-title">Kirim Saran atau Ulasan</h3>
+
+            <!-- Honeypot field (hidden from humans, catches automated bots) -->
+            <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
+              <label for="reviewWebsite">Website</label>
+              <input type="text" id="reviewWebsite" name="website" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-field">
+                <label for="reviewName">Nama Anda</label>
+                <input type="text" id="reviewName" name="name" placeholder="Contoh: Ibu Rina" maxlength="50" required>
+              </div>
+              <div class="form-field">
+                <label for="reviewRole">Peran</label>
+                <select id="reviewRole" name="role">
+                  <option value="Orang Tua">Orang Tua</option>
+                  <option value="Guru / Pendidik">Guru / Pendidik</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="reviewCategory">Kategori</label>
+              <select id="reviewCategory" name="category">
+                <option value="Ulasan">Ulasan Pengalaman</option>
+                <option value="Saran">Saran Fitur / Game Baru</option>
+                <option value="Laporan">Laporan Kendala</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label for="reviewMessage">Saran / Ulasan Anda <small id="reviewCharCount" style="color: var(--text-subtle); font-weight: 600;">(0/500)</small></label>
+              <textarea id="reviewMessage" name="message" rows="4" minlength="10" maxlength="500" placeholder="Tuliskan ulasan atau saran Anda untuk POTER EDUGAMES (minimal 10 karakter, tanpa tautan/URL)..." required></textarea>
+            </div>
+
+            <div class="form-field antispam-box">
+              <label for="reviewChallengeAnswer">
+                Verifikasi Anti-Spam: <strong id="reviewChallengeQuestion">Memuat hitungan...</strong>
+              </label>
+              <div class="challenge-input-row">
+                <input type="number" id="reviewChallengeAnswer" name="challengeAnswer" placeholder="Jawaban angka" required>
+                <button type="button" class="btn-refresh-challenge" id="btnRefreshChallenge" title="Ganti pertanyaan">Ganti</button>
+              </div>
+              <input type="hidden" id="reviewChallengeToken" name="challengeToken">
+            </div>
+
+            <div id="reviewFeedback" class="review-feedback" role="status" aria-live="polite"></div>
+
+            <button type="submit" class="btn-submit-review" id="btnSubmitReview">
+              Kirim Saran &amp; Ulasan
+            </button>
+          </form>
+
+          <!-- Right: Live Reviews List -->
+          <div class="reviews-list-glass">
+            <div class="reviews-summary-bar">
+              <h3 class="review-panel-title" style="margin: 0;">Daftar Saran &amp; Ulasan</h3>
+              <span class="reviews-total-pill" id="reviewsTotalCount">Memuat ulasan...</span>
+            </div>
+
+            <div class="reviews-scroll-list" id="reviewsListContainer">
+              <p class="reviews-empty-hint">Memuat saran &amp; ulasan terbaru...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- LIQUID GLASS FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="brand-wrap">
+        <img src="/assets/poter-logo.png" width="32" height="32" alt="">
+        <div class="brand-text">
+          <strong style="font-size: 0.95rem;">POTER EDUGAMES</strong>
+        </div>
+      </div>
+
+      <div class="footer-copy-text">
+        <div style="margin-bottom: 6px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <a href="/index.html" style="color: var(--cyan-bright); font-weight: 700;">Web Standar</a>
+          <span>•</span>
+          <a href="#ulasan" style="color: var(--text-subtle);">Saran &amp; Ulasan</a>
+          <span>•</span>
+          <a href="/admin" style="color: var(--text-subtle);">Login Admin</a>
+        </div>
+        by PT Poter Teknik Nusantara • © 2026 Hak Cipta Dilindungi
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODAL QR CODE -->
+  <div class="modal-overlay" id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="modal-glass-box">
+      <button type="button" class="modal-close-btn" id="qrCloseBtn" aria-label="Tutup popup">&times;</button>
+      <h3 style="font-size: 1.3rem; font-weight: 850; margin-bottom: 8px;" id="qrTitle">Pindai QR di Ponsel</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">Buka kamera ponsel Anda untuk langsung mengunduh APK ke perangkat Android.</p>
+      
+      <div id="qrDisplay" style="display: flex; justify-content: center; margin: 16px 0;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <small style="font-size: 0.78rem; color: var(--text-subtle);">Tautan otomatis mengarah ke versi rilis stabil resmi.</small>
+    </div>
+  </div>
+
+  <!-- MODAL KONFIRMASI UNDUHAN -->
+  <div class="modal-overlay" id="downloadModal" role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+    <div class="modal-glass-box">
+      <button type="button" class="modal-close-btn" id="downloadCloseBtn" aria-label="Tutup">&times;</button>
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </div>
+      <h3 style="font-size: 1.3rem; font-weight: 850; margin-bottom: 8px;" id="dlTitle">Sedang Mengunduh APK</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">Berkas resmi APK sedang diunduh ke ponsel Anda. Unduhan ini telah dicatat di sistem pemantauan.</p>
+
+      <div style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px; text-align: left; margin-bottom: 20px; font-size: 0.85rem;">
+        <strong>Langkah Selanjutnya di Android:</strong>
+        <ol style="margin-top: 6px; padding-left: 18px; line-height: 1.5; color: var(--text-muted);">
+          <li>Buka bar notifikasi atau folder Download di ponsel Anda.</li>
+          <li>Ketuk berkas <b>POTER-EDUGAMES-v1.1.0.apk</b>.</li>
+          <li>Pilih <b>Tetap Pasang</b> jika ada konfirmasi sistem.</li>
+        </ol>
+      </div>
+
+      <a href="/download" class="btn-hero-primary" style="width: 100%; min-height: 44px; padding: 12px;" data-source="Modal Unduh Ulang">
+        Unduh Ulang Berkas APK
+      </a>
+    </div>
+  </div>
+
+  <script src="/js/landing-liquid.js"></script>
+</body>
+</html>

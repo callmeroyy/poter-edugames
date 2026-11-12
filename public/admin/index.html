@@ -61,6 +61,7 @@
           <option value="tab-install-logs">Telemetri Pemasangan</option>
           <option value="tab-admin-audit">Aktivitas Admin</option>
           <option value="tab-versions">Kelola Versi Game</option>
+          <option value="tab-reviews">Saran & Ulasan</option>
           <option value="tab-docs">Panduan Telemetri</option>
         </select>
       </label>
@@ -538,6 +539,38 @@
           </div>
         </div>
       </details>
+    </section>
+
+    <!-- TAB: SARAN & ULASAN -->
+    <section id="tab-reviews" class="tab-content" style="display: none;" role="tabpanel">
+      <div class="table-card">
+        <div class="table-card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div>
+            <h2 style="font-size: 1.2rem; font-weight: 800; margin: 0;">Daftar Saran &amp; Ulasan Pengguna</h2>
+            <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin-top: 4px;">Pantau masukan dari orang tua dan guru, serta hapus jika ada masukan yang tidak sesuai.</p>
+          </div>
+          <button type="button" class="btn-export" id="btnRefreshAdminReviews" style="min-height: 38px; padding: 8px 14px;">Muat Ulang</button>
+        </div>
+
+        <div class="table-responsive" style="margin-top: 16px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Pengirim</th>
+                <th>Kategori</th>
+                <th>Isi Saran / Ulasan</th>
+                <th style="width: 110px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="adminReviewsTableBody">
+              <tr>
+                <td colspan="5" style="text-align: center; padding: 24px;">Memuat saran &amp; ulasan...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- TAB 6: TELEMETRY DOCS -->

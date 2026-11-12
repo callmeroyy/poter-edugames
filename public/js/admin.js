@@ -82,6 +82,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       description: 'Publikasikan versi APK dan tentukan rilis utama.',
       load: () => loadVersionList()
     },
+    'tab-reviews': {
+      title: 'Saran & Ulasan',
+      description: 'Daftar saran dan ulasan dari orang tua dan guru beserta tombol hapus.',
+      load: () => loadAdminReviews()
+    },
     'tab-docs': {
       title: 'Panduan Telemetri',
       description: 'Petunjuk integrasi konfirmasi pemasangan dari aplikasi Android.'
@@ -119,6 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAuditFilters();
   setupVersionForm();
   setupSafetyResetModal();
+  document.getElementById('btnRefreshAdminReviews')?.addEventListener('click', () => loadAdminReviews());
 
   // Initial Load
   activateDashboardView('tab-overview');
@@ -1345,3 +1351,77 @@ async function executeResetAction() {
     confirmBtn.textContent = 'Konfirmasi Reset';
   }
 }
+
+// ==============================================================
+// SARAN & ULASAN MODERATION (ADMIN)
+// ==============================================================
+function escapeAdminHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function loadAdminReviews() {
+  const tbody = document.getElementById('adminReviewsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px;">Memuat saran &amp; ulasan...</td></tr>';
+
+  try {
+    const res = await fetch('/api/admin/reviews');
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Gagal memuat data.');
+    }
+
+    const rows = json.data || [];
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 28px; color: var(--admin-text-muted);">Belum ada saran atau ulasan yang masuk.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(item => {
+      const dateText = item.created_at
+        ? new Date(item.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '-';
+      return `
+        <tr>
+          <td style="white-space: nowrap; font-size: 0.85rem;">${escapeAdminHtml(dateText)}</td>
+          <td>
+            <strong>${escapeAdminHtml(item.name)}</strong><br>
+            <small style="color: var(--admin-text-muted);">${escapeAdminHtml(item.role)}</small>
+          </td>
+          <td><span class="badge-version">${escapeAdminHtml(item.category)}</span></td>
+          <td style="max-width: 420px; white-space: normal; line-height: 1.5;">${escapeAdminHtml(item.message)}</td>
+          <td style="text-align: center;">
+            <button type="button" class="btn-version-action permanent-delete" onclick="deleteAdminReview(${Number(item.id)})">
+              Hapus
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: #DC2626;">${escapeAdminHtml(err.message || 'Gagal memuat saran & ulasan.')}</td></tr>`;
+  }
+}
+
+async function deleteAdminReview(id) {
+  if (!confirm('Yakin ingin menghapus saran/ulasan ini secara permanen?')) return;
+  try {
+    const res = await fetch(`/api/admin/reviews/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Gagal menghapus ulasan.');
+    }
+    loadAdminReviews();
+  } catch (err) {
+    alert(err.message || 'Gagal menghapus ulasan.');
+  }
+}
+
+window.deleteAdminReview = deleteAdminReview;

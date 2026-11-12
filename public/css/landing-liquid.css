@@ -1,0 +1,1707 @@
+/* ==============================================================
+   POTER EDUGAMES — FULL LIQUID GLASS LANDING PAGE
+   Ultra-Clear Crystal Glass Aesthetics (Anti-Glass Bening)
+   Tanpa Hologram — Fokus pada Game Edukasi Nyata & Smartphone
+   ============================================================== */
+
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  /* POTER Palette */
+  --primary: #1D4ED8;
+  --primary-hover: #1E40AF;
+  --cyan-accent: #0284C7;
+  --cyan-bright: #38BDF8;
+  --navy-deep: #050B14;
+  --navy-surface: #091322;
+  
+  /* Liquid Glass Core Tokens (100% Ultra-Clear Transparent / Bening Tembus Pandang) */
+  --bg-page: #060D1A;
+  --text-main: #F8FAFC;
+  --text-muted: #CBD5E1;
+  --text-subtle: #94A3B8;
+
+  /* Transparansi Murni Tembus Pandang (No Foggy Fill) */
+  --glass-bg: rgba(255, 255, 255, 0.015);
+  --glass-bg-hover: rgba(255, 255, 255, 0.05);
+  --glass-blur: 1.5px;
+  --glass-saturate: 120%;
+  --glass-contrast: 102%;
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-bevel-top: rgba(255, 255, 255, 0.90);
+  --glass-bevel-bottom: rgba(0, 0, 0, 0.15);
+  --glass-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.35), 0 2px 10px rgba(2, 132, 199, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  --nav-glass: rgba(255, 255, 255, 0.02);
+  --nav-border: rgba(255, 255, 255, 0.28);
+}
+
+[data-theme="light"] {
+  --bg-page: #F0F4F9;
+  --text-main: #0B1728;
+  --text-muted: #334155;
+  --text-subtle: #64748B;
+
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-bg-hover: rgba(255, 255, 255, 0.18);
+  --glass-blur: 1.5px;
+  --glass-saturate: 110%;
+  --glass-contrast: 101%;
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-bevel-top: rgba(255, 255, 255, 1);
+  --glass-bevel-bottom: rgba(15, 23, 42, 0.04);
+  --glass-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  --nav-glass: rgba(255, 255, 255, 0.15);
+  --nav-border: rgba(255, 255, 255, 0.85);
+}
+
+/* Ambient Optical Light Orbs (Shines clearly through crystal glass) */
+.ambient-optical-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.optical-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(85px);
+  opacity: 0.55;
+  animation: orbDrift 22s ease-in-out infinite alternate;
+}
+
+.orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.45) 0%, rgba(2, 132, 199, 0.15) 60%, transparent 80%);
+  top: 5%;
+  right: 5%;
+}
+
+.orb-2 {
+  width: 580px;
+  height: 580px;
+  background: radial-gradient(circle, rgba(29, 78, 216, 0.4) 0%, rgba(29, 78, 216, 0.12) 60%, transparent 80%);
+  top: 42%;
+  left: -8%;
+  animation-delay: -8s;
+}
+
+.orb-3 {
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(56, 189, 248, 0.1) 60%, transparent 80%);
+  bottom: 8%;
+  right: 18%;
+  animation-delay: -15s;
+}
+
+@keyframes orbDrift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-35px, 45px) scale(1.08); }
+  100% { transform: translate(25px, -25px) scale(0.95); }
+}
+
+/* Liquid Ripple Wave Overlay on Click / Tap */
+.liquid-ripple-wave {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(56, 189, 248, 0.85);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.6), inset 0 0 12px rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  animation: liquidRippleSpread 0.75s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+  z-index: 5;
+}
+
+@keyframes liquidRippleSpread {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(36);
+    opacity: 0;
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+  scroll-behavior: smooth;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+body {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(at 15% 15%, rgba(29, 78, 216, 0.22) 0px, transparent 45%),
+    radial-gradient(at 85% 18%, rgba(2, 132, 199, 0.20) 0px, transparent 40%),
+    radial-gradient(at 50% 65%, rgba(56, 189, 248, 0.14) 0px, transparent 55%),
+    radial-gradient(at 90% 90%, rgba(29, 78, 216, 0.18) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Accessibility Focus */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--cyan-bright);
+  outline-offset: 3px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ==============================================================
+   FLOATING LIQUID GLASS NAVIGATION BAR
+   ============================================================== */
+.site-header {
+  position: sticky;
+  top: 16px;
+  z-index: 50;
+  padding: 0 20px;
+  margin-bottom: 24px;
+}
+
+.nav-glass-bar {
+  max-width: 1160px;
+  margin: 0 auto;
+  min-height: 68px;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: 20px;
+  background: var(--nav-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+  transition: all 0.3s ease;
+}
+
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-wrap img {
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(29, 78, 216, 0.3));
+}
+
+.brand-text strong {
+  display: block;
+  font-size: 0.98rem;
+  font-weight: 850;
+  letter-spacing: -0.2px;
+}
+
+.brand-text small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-subtle);
+  font-weight: 600;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .nav-link:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] .theme-toggle-btn {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--cyan-bright);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.btn-nav-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--cyan-accent) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-nav-download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.5);
+}
+
+/* ==============================================================
+   HERO SECTION (TANPA HOLOGRAM — SMARTPHONE REALISTIS DI KACA)
+   ============================================================== */
+.hero-section {
+  padding: 40px 0 72px;
+  position: relative;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(2, 132, 199, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--cyan-bright);
+  margin-bottom: 18px;
+}
+
+[data-theme="light"] .hero-badge {
+  color: var(--primary);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+.hero-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan-bright);
+  box-shadow: 0 0 8px var(--cyan-bright);
+}
+
+.hero-title {
+  font-size: clamp(2.3rem, 4vw, 3.4rem);
+  font-weight: 850;
+  letter-spacing: -0.8px;
+  line-height: 1.15;
+  margin-bottom: 18px;
+  color: var(--text-main);
+}
+
+.hero-title span {
+  background: linear-gradient(135deg, #60A5FA 0%, #38BDF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="light"] .hero-title span {
+  background: linear-gradient(135deg, #1D4ED8 0%, #0284C7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-desc {
+  font-size: 1.08rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+
+/* Specs Liquid Glass Grid */
+.specs-glass-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.spec-glass-card {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), inset 0 1px 1px var(--glass-bevel-top);
+}
+
+.spec-glass-card small {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: 2px;
+}
+
+.spec-glass-card strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 850;
+  color: var(--text-main);
+}
+
+/* Hero CTA Action Group */
+.hero-cta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  min-height: 54px;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--cyan-accent) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 28px rgba(2, 132, 199, 0.4), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  max-width: 420px;
+  transition: all 0.25s ease;
+}
+
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(2, 132, 199, 0.55);
+}
+
+.hero-secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-glass-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  min-height: 42px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--glass-shadow);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-glass-sub:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--cyan-bright);
+  transform: translateY(-1px);
+}
+
+.hero-jenjang-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-subtle);
+  font-weight: 600;
+}
+
+.tag-jenjang {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.tag-paud { background: rgba(29, 78, 216, 0.2); color: #60A5FA; }
+.tag-tk   { background: rgba(16, 185, 129, 0.2); color: #34D399; }
+.tag-sd   { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
+
+[data-theme="light"] .tag-paud { background: #DBEAFE; color: #1D4ED8; }
+[data-theme="light"] .tag-tk   { background: #D1FAE5; color: #059669; }
+[data-theme="light"] .tag-sd   { background: #FEF3C7; color: #D97706; }
+
+/* ==============================================================
+   HERO VISUAL: REALISTIC SMARTPHONE ON LIQUID GLASS PLATFORM
+   (MENGGANTIKAN HOLOGRAM DENGAN TAMPILAN NYATA)
+   ============================================================== */
+.hero-smartphone-stage {
+  position: relative;
+  border-radius: 28px;
+  padding: 32px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) contrast(var(--glass-contrast));
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 2px 1.5px 0 var(--glass-bevel-top),
+    inset 0 -2px 2px 0 var(--glass-bevel-bottom);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Liquid Sheen Follower on the Smartphone Stage */
+.hero-smartphone-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 320px at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(56, 189, 248, 0.1) 40%,
+    transparent 70%
+  );
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+
+/* Crystal Transparent Smartphone Device */
+.smartphone-device {
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 9 / 16;
+  max-height: 480px;
+  background: rgba(10, 16, 29, 0.25);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  border-radius: 36px;
+  padding: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 24px 60px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.8);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.smartphone-notch {
+  width: 80px;
+  height: 18px;
+  background: rgba(10, 16, 29, 0.6);
+  border-radius: 0 0 12px 12px;
+  margin: 0 auto 8px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: none;
+}
+
+.notch-camera {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notch-speaker {
+  width: 32px;
+  height: 4px;
+  border-radius: 4px;
+  background: #1E293B;
+}
+
+/* Screen Display inside Phone (Crystal Transparent) */
+.smartphone-screen {
+  flex: 1;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.28);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px;
+  color: #FFFFFF;
+}
+
+.screen-app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.screen-logo-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.screen-logo-badge span {
+  font-size: 0.8rem;
+  font-weight: 850;
+  letter-spacing: -0.2px;
+}
+
+.screen-stars-pill {
+  background: rgba(245, 158, 11, 0.2);
+  color: #FBBF24;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+/* Active Game Scene in Phone */
+.active-game-scene {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+
+.game-title-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--cyan-bright);
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.game-name-main {
+  font-size: 1.05rem;
+  font-weight: 850;
+  margin-bottom: 14px;
+}
+
+/* Visual Mockup inside Screen (Interactive Game Module) */
+.scene-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 180px;
+  margin-bottom: 14px;
+}
+
+.interactive-card-tile {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(2, 132, 199, 0.2);
+  border: 1.5px solid rgba(56, 189, 248, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.interactive-card-tile:hover {
+  transform: scale(1.06);
+  background: rgba(2, 132, 199, 0.4);
+}
+
+.scene-caption-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Game Switcher Tabs beneath Phone */
+.game-switcher-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+  z-index: 2;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.game-tab-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.74rem;
+  font-weight: 750;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.game-tab-btn.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--cyan-bright);
+}
+
+/* ==============================================================
+   SECTIONS: FEATURES & MODUL GAME DALAM KACA CAIR BENING
+   ============================================================== */
+.section {
+  padding: 64px 0;
+}
+
+.section-header {
+  margin-bottom: 36px;
+}
+
+.section-label {
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  color: var(--cyan-bright);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+[data-theme="light"] .section-label {
+  color: var(--primary);
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  font-weight: 850;
+  letter-spacing: -0.6px;
+  line-height: 1.25;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.section-desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+  max-width: 640px;
+}
+
+/* 5 Cards Grid in Liquid Glass */
+.game-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.liquid-game-card {
+  padding: 28px;
+  border-radius: 22px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-game-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--cyan-bright);
+  box-shadow: 0 20px 48px -10px rgba(2, 132, 199, 0.35);
+}
+
+.module-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  background: rgba(2, 132, 199, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.liquid-game-card h3 {
+  font-size: 1.2rem;
+  font-weight: 850;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.module-subtag {
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: var(--cyan-bright);
+  margin-bottom: 10px;
+  display: block;
+}
+
+[data-theme="light"] .module-subtag {
+  color: var(--primary);
+}
+
+.liquid-game-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-top: auto;
+}
+
+/* ==============================================================
+   PARENT LEARNING MONITOR (DEEP ROYAL BLUE LIQUID GLASS)
+   ============================================================== */
+.parent-monitor-card {
+  padding: clamp(32px, 5vw, 48px);
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.12) 0%, rgba(2, 132, 199, 0.08) 100%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+  color: var(--text-main);
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.parent-monitor-copy h2 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 850;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.parent-monitor-copy p {
+  color: var(--text-muted);
+  font-size: 1.02rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.parent-checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.parent-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.check-pill {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--cyan-accent);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+.btn-open-parent-dash {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 26px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 850;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--cyan-accent) 100%);
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-open-parent-dash:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.5);
+}
+
+/* Dashboard Mockup in Parent Card */
+.parent-dash-mock {
+  background: var(--glass-bg);
+  color: var(--text-main);
+  border-radius: 20px;
+  padding: 24px;
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top);
+}
+
+[data-theme="dark"] .parent-dash-mock {
+  background: var(--glass-bg);
+  color: var(--text-main);
+  border: 1.5px solid var(--glass-border);
+}
+
+.dash-mock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+[data-theme="dark"] .dash-mock-header {
+  border-bottom-color: var(--glass-border);
+}
+
+.dash-mock-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+  text-align: center;
+}
+
+.mock-stat-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  padding: 10px 8px;
+  border-radius: 10px;
+}
+
+[data-theme="dark"] .mock-stat-box {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--glass-border);
+}
+
+.mock-stat-box strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 850;
+  color: #0284C7;
+}
+
+[data-theme="dark"] .mock-stat-box strong {
+  color: #38BDF8;
+}
+
+.mock-stat-box small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+
+.mock-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 60px;
+  padding-top: 10px;
+}
+
+.mock-bar {
+  flex: 1;
+  background: #BAE6FD;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+[data-theme="dark"] .mock-bar {
+  background: #0369A1;
+}
+
+.mock-bar.active {
+  background: #0284C7;
+}
+
+[data-theme="dark"] .mock-bar.active {
+  background: #38BDF8;
+}
+
+/* ==============================================================
+   VERSIONS & APK ARCHIVE IN LIQUID GLASS
+   ============================================================== */
+.versions-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.version-glass-item {
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  transition: all 0.2s ease;
+}
+
+.version-glass-item.highlight {
+  border-color: var(--cyan-bright);
+}
+
+.version-info-left {
+  flex: 1;
+}
+
+.version-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.version-code-num {
+  font-size: 1.3rem;
+  font-weight: 850;
+  color: var(--text-main);
+}
+
+.version-badge-rec {
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: rgba(2, 132, 199, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: var(--cyan-bright);
+}
+
+[data-theme="light"] .version-badge-rec {
+  background: #E0F2FE;
+  color: #0369A1;
+}
+
+.version-submeta {
+  font-size: 0.82rem;
+  color: var(--text-subtle);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.version-changelog-list {
+  padding-left: 18px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.btn-download-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--cyan-accent) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-download-version:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.btn-download-version.secondary {
+  background: var(--glass-bg);
+  color: var(--cyan-bright);
+  border-color: var(--glass-border);
+  box-shadow: none;
+}
+
+[data-theme="light"] .btn-download-version.secondary {
+  color: var(--primary);
+}
+
+/* ==============================================================
+   3 STEPS & FAQ CARDS IN LIQUID GLASS
+   ============================================================== */
+.steps-cards-grid,
+.faq-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.step-liquid-card,
+.faq-liquid-card {
+  padding: 26px;
+  border-radius: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+}
+
+.step-circle-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 850;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.step-liquid-card h3,
+.faq-liquid-card h3 {
+  font-size: 1.12rem;
+  font-weight: 850;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.step-liquid-card p,
+.faq-liquid-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* ==============================================================
+   FOOTER IN LIQUID GLASS
+   ============================================================== */
+.site-footer {
+  margin-top: 60px;
+  padding: 32px 0;
+  border-top: 1px solid var(--glass-border);
+  background: var(--nav-glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-copy-text {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+  font-weight: 600;
+}
+
+/* ==============================================================
+   MODAL DIALOG IN LIQUID GLASS
+   ============================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 11, 20, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-glass-box {
+  max-width: 460px;
+  width: 100%;
+  padding: 32px;
+  border-radius: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), inset 0 2px 2px var(--glass-bevel-top);
+  position: relative;
+  text-align: center;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* ==============================================================
+   PUSH NOTIFICATION BANNER (HP & DEVICE LAIN)
+   ============================================================== */
+.push-notify-glass-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+}
+
+.push-notify-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.push-notify-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+}
+
+.push-notify-info h3 {
+  font-size: 1.05rem;
+  font-weight: 850;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.push-notify-info p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.push-notify-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.btn-push-subscribe {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-push-subscribe:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+}
+
+.btn-push-subscribe.subscribed {
+  background: rgba(16, 185, 129, 0.22);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: none;
+}
+
+.btn-push-test {
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 750;
+  color: var(--text-main);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-push-test:hover {
+  border-color: var(--cyan-bright);
+  transform: translateY(-1px);
+}
+
+/* ==============================================================
+   SARAN & ULASAN (ANTI-SPAM) IN TRANSPARENT LIQUID GLASS
+   ============================================================== */
+.reviews-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.review-form-glass,
+.reviews-list-glass {
+  padding: 28px;
+  border-radius: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1.5px solid var(--glass-border);
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1.5px 1px 0 var(--glass-bevel-top),
+    inset 0 -1.5px 2px 0 var(--glass-bevel-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-panel-title {
+  font-size: 1.2rem;
+  font-weight: 850;
+  color: var(--text-main);
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 0.85rem;
+  font-weight: 750;
+  color: var(--text-main);
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="light"] .form-field input,
+[data-theme="light"] .form-field select,
+[data-theme="light"] .form-field textarea {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.form-field select option {
+  background: #0F172A;
+  color: #F8FAFC;
+}
+
+[data-theme="light"] .form-field select option {
+  background: #FFFFFF;
+  color: #0F172A;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: var(--cyan-bright);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+.star-rating-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  height: 43px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: rgba(148, 163, 184, 0.45);
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.star-btn.active {
+  color: #F59E0B;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.antispam-box {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px dashed rgba(56, 189, 248, 0.45);
+}
+
+.challenge-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-refresh-challenge {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 750;
+  color: var(--text-main);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-submit-review {
+  padding: 14px 22px;
+  border-radius: 14px;
+  font-size: 0.96rem;
+  font-weight: 850;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, var(--primary), var(--cyan-accent));
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-submit-review:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(2, 132, 199, 0.5);
+}
+
+.btn-submit-review:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.review-feedback {
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-height: 20px;
+}
+
+.review-feedback.success {
+  color: #10B981;
+}
+
+.review-feedback.error {
+  color: #F87171;
+}
+
+.reviews-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.reviews-avg-num {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--text-main);
+  margin-right: 8px;
+}
+
+.reviews-avg-stars {
+  color: #F59E0B;
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+}
+
+.reviews-total-pill {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--cyan-bright);
+}
+
+[data-theme="light"] .reviews-total-pill {
+  color: var(--primary);
+}
+
+.reviews-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.review-item-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+}
+
+[data-theme="light"] .review-item-card {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.review-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.review-item-author {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.review-item-meta {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  font-weight: 650;
+}
+
+.review-item-stars {
+  color: #F59E0B;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.review-item-body {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.reviews-empty-hint {
+  font-size: 0.9rem;
+  color: var(--text-subtle);
+  text-align: center;
+  padding: 28px 12px;
+}
+
+/* ==============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================== */
+@media (max-width: 960px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .parent-monitor-card,
+  .reviews-layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .push-notify-glass-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .game-modules-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .steps-cards-grid,
+  .faq-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-links {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .game-modules-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .specs-glass-row,
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .version-glass-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-download-version,
+  .push-notify-actions,
+  .btn-push-subscribe,
+  .btn-push-test {
+    width: 100%;
+    justify-content: center;
+  }
+}
