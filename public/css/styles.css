@@ -3458,3 +3458,109 @@ select:focus-visible {
     width: 100%;
   }
 }
+
+/* Enhanced Saran & Ulasan UX (Privacy, Mini Stats, Load More, Mobile Comfort) */
+.review-anon-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.review-anon-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.reviews-mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mini-stat-chip {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-subtle-bg);
+  border: 1px solid var(--glass-border-subtle);
+  text-align: center;
+}
+
+.mini-stat-chip strong {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.mini-stat-chip span {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-subtle);
+}
+
+.btn-load-more-reviews {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: rgba(29, 78, 216, 0.08);
+  border: 1px solid rgba(29, 78, 216, 0.25);
+  cursor: pointer;
+}
+
+.btn-load-more-reviews:hover {
+  background: rgba(29, 78, 216, 0.14);
+}
+
+.reviews-invite-box {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(2, 132, 199, 0.06);
+  border: 1px dashed rgba(2, 132, 199, 0.35);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.review-feedback.success,
+.review-feedback.error {
+  padding: 12px 14px;
+  border-radius: 12px;
+  line-height: 1.45;
+}
+
+.review-feedback.success {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.review-feedback.error {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+}
+
+@media (max-width: 600px) {
+  .review-field input,
+  .review-field select,
+  .review-field textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .btn-submit-review,
+  .btn-refresh-challenge,
+  .btn-push-subscribe,
+  .btn-push-test {
+    min-height: 44px;
+  }
+}

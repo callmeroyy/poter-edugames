@@ -895,22 +895,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  async function loadReviews() {
+  const reviewAnonymous = document.getElementById('reviewAnonymous');
+  const reviewNameInput = document.getElementById('reviewName');
+  const btnLoadMoreReviews = document.getElementById('btnLoadMoreReviews');
+  const reviewsInviteNote = document.getElementById('reviewsInviteNote');
+  let reviewsOffset = 0;
+  const REVIEWS_PAGE_SIZE = 5;
+
+  if (reviewAnonymous && reviewNameInput) {
+    reviewAnonymous.addEventListener('change', () => {
+      if (reviewAnonymous.checked) {
+        reviewNameInput.value = 'Anonim';
+        reviewNameInput.disabled = true;
+      } else {
+        reviewNameInput.value = '';
+        reviewNameInput.disabled = false;
+        reviewNameInput.focus();
+      }
+    });
+  }
+
+  async function loadReviews(append = false) {
     if (!reviewsListContainer) return;
+    if (!append) reviewsOffset = 0;
     try {
-      const res = await fetch('/api/reviews');
+      const res = await fetch(`/api/reviews?limit=${REVIEWS_PAGE_SIZE}&offset=${reviewsOffset}`);
       const json = await res.json();
       if (!json.success) return;
 
       const total = json.stats?.total || 0;
-      if (reviewsTotalCountEl) reviewsTotalCountEl.textContent = `${total} Masukan Terverifikasi`;
+      if (reviewsTotalCountEl) reviewsTotalCountEl.textContent = `${total} Masukan Masuk`;
+      const statUlasan = document.getElementById('statUlasanCount');
+      const statSaran = document.getElementById('statSaranCount');
+      const statLaporan = document.getElementById('statLaporanCount');
+      if (statUlasan) statUlasan.textContent = String(json.stats?.ulasanCount || 0);
+      if (statSaran) statSaran.textContent = String(json.stats?.saranCount || 0);
+      if (statLaporan) statLaporan.textContent = String(json.stats?.laporanCount || 0);
+      if (reviewsInviteNote) reviewsInviteNote.style.display = total < 3 ? 'block' : 'none';
+      if (btnLoadMoreReviews) btnLoadMoreReviews.style.display = json.hasMore ? 'block' : 'none';
 
-      if (!json.reviews || json.reviews.length === 0) {
-        reviewsListContainer.innerHTML = '<p class="reviews-empty-text">Belum ada saran atau ulasan. Jadilah orang tua atau guru pertama yang berbagi pengalaman!</p>';
+      const items = json.reviews || [];
+      if (!append && items.length === 0) {
+        reviewsListContainer.innerHTML = '<p class="reviews-empty-text">Belum ada saran atau ulasan. Jadilah yang pertama memberi ulasan untuk orang tua dan guru lainnya!</p>';
         return;
       }
 
-      reviewsListContainer.innerHTML = json.reviews.map((item) => {
+      const html = items.map((item) => {
         const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
         return `
           <article class="review-item">
@@ -925,9 +955,20 @@ document.addEventListener('DOMContentLoaded', () => {
           </article>
         `;
       }).join('');
+
+      if (append) {
+        reviewsListContainer.insertAdjacentHTML('beforeend', html);
+      } else {
+        reviewsListContainer.innerHTML = html;
+      }
+      reviewsOffset += items.length;
     } catch (_) {
-      reviewsListContainer.innerHTML = '<p class="reviews-empty-text">Gagal memuat daftar ulasan.</p>';
+      if (!append) reviewsListContainer.innerHTML = '<p class="reviews-empty-text">Gagal memuat daftar ulasan.</p>';
     }
+  }
+
+  if (btnLoadMoreReviews) {
+    btnLoadMoreReviews.addEventListener('click', () => loadReviews(true));
   }
 
   if (reviewMessage && reviewCharCount) {
@@ -948,7 +989,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btnSubmitReview) btnSubmitReview.disabled = true;
 
       const payload = {
-        name: document.getElementById('reviewName')?.value || '',
+        name: reviewNameInput?.value || '',
+        anonymous: Boolean(reviewAnonymous?.checked),
         role: document.getElementById('reviewRole')?.value || 'Orang Tua',
         category: document.getElementById('reviewCategory')?.value || 'Ulasan',
         message: reviewMessage?.value || '',
@@ -978,8 +1020,9 @@ document.addEventListener('DOMContentLoaded', () => {
           reviewFeedback.textContent = json.message;
         }
         reviewForm.reset();
+        if (reviewNameInput) reviewNameInput.disabled = false;
         if (reviewCharCount) reviewCharCount.textContent = '(0/500)';
-        await Promise.all([loadReviews(), loadReviewChallenge()]);
+        await Promise.all([loadReviews(false), loadReviewChallenge()]);
       } catch (_) {
         if (reviewFeedback) {
           reviewFeedback.className = 'review-feedback error';

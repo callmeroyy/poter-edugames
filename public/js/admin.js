@@ -1367,7 +1367,7 @@ function escapeAdminHtml(str) {
 async function loadAdminReviews() {
   const tbody = document.getElementById('adminReviewsTableBody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px;">Memuat saran &amp; ulasan...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;">Memuat saran &amp; ulasan...</td></tr>';
 
   try {
     const res = await fetch('/api/admin/reviews');
@@ -1378,7 +1378,7 @@ async function loadAdminReviews() {
 
     const rows = json.data || [];
     if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 28px; color: var(--admin-text-muted);">Belum ada saran atau ulasan yang masuk.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 28px; color: var(--admin-text-muted);">Belum ada saran atau ulasan yang masuk.</td></tr>';
       return;
     }
 
@@ -1386,6 +1386,12 @@ async function loadAdminReviews() {
       const dateText = item.created_at
         ? new Date(item.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
         : '-';
+      const status = item.status || 'approved';
+      const statusLabel = status === 'pending' ? 'Menunggu' : (status === 'hidden' ? 'Disembunyikan' : 'Ditampilkan');
+      const statusColor = status === 'pending' ? '#D97706' : (status === 'hidden' ? '#64748B' : '#059669');
+      const toggleBtn = status === 'approved'
+        ? `<button type="button" class="btn-version-action" style="min-height: 34px; padding: 5px 10px; font-weight: 700;" onclick="updateAdminReviewStatus(${Number(item.id)}, 'hidden')">Sembunyikan</button>`
+        : `<button type="button" class="btn-version-action" style="min-height: 34px; padding: 5px 10px; font-weight: 700; color: #059669; border-color: #059669;" onclick="updateAdminReviewStatus(${Number(item.id)}, 'approved')">Setujui</button>`;
       return `
         <tr>
           <td style="white-space: nowrap; font-size: 0.85rem;">${escapeAdminHtml(dateText)}</td>
@@ -1394,17 +1400,38 @@ async function loadAdminReviews() {
             <small style="color: var(--admin-text-muted);">${escapeAdminHtml(item.role)}</small>
           </td>
           <td><span class="badge-version">${escapeAdminHtml(item.category)}</span></td>
-          <td style="max-width: 420px; white-space: normal; line-height: 1.5;">${escapeAdminHtml(item.message)}</td>
+          <td style="max-width: 380px; white-space: normal; line-height: 1.5;">${escapeAdminHtml(item.message)}</td>
+          <td><span style="font-weight: 700; font-size: 0.82rem; color: ${statusColor};">${statusLabel}</span></td>
           <td style="text-align: center;">
-            <button type="button" class="btn-version-action permanent-delete" style="min-height: 36px; padding: 6px 14px; font-weight: 700;" onclick="deleteAdminReview(${Number(item.id)})">
-              Hapus
-            </button>
+            <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+              ${toggleBtn}
+              <button type="button" class="btn-version-action permanent-delete" style="min-height: 34px; padding: 5px 10px; font-weight: 700;" onclick="deleteAdminReview(${Number(item.id)})">
+                Hapus
+              </button>
+            </div>
           </td>
         </tr>
       `;
     }).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 24px; color: #DC2626;">${escapeAdminHtml(err.message || 'Gagal memuat saran & ulasan.')}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: #DC2626;">${escapeAdminHtml(err.message || 'Gagal memuat saran & ulasan.')}</td></tr>`;
+  }
+}
+
+async function updateAdminReviewStatus(id, status) {
+  try {
+    const res = await fetch(`/api/admin/reviews/${encodeURIComponent(id)}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'Gagal memperbarui status.');
+    }
+    loadAdminReviews();
+  } catch (err) {
+    alert(err.message || 'Gagal memperbarui status.');
   }
 }
 
@@ -1424,4 +1451,5 @@ async function deleteAdminReview(id) {
   }
 }
 
+window.updateAdminReviewStatus = updateAdminReviewStatus;
 window.deleteAdminReview = deleteAdminReview;

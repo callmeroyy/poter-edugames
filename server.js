@@ -1846,8 +1846,14 @@ function sanitizePlainText(str = '') {
 }
 
 function containsSpamSignals(text = '') {
-  if (/(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|xyz|info|biz|ru|cn|click|top)\b)/i.test(text)) {
+  if (/(https?:\/\/|www\.|[a-z0-9-]+\.(com|net|org|xyz|info|biz|ru|cn|click|top|id|me)\b)/i.test(text)) {
     return 'Tautan atau URL tidak diperbolehkan pada kolom ulasan untuk mencegah spam.';
+  }
+  if (/(\bwa\.me\b|\bt\.me\b|(\+?62|0)8\d{7,12})/i.test(text.replace(/[\s.-]/g, ''))) {
+    return 'Nomor kontak atau tautan obrolan tidak diperbolehkan demi keamanan komunitas anak.';
+  }
+  if (/\b(slot|gacor|maxwin|judol|judi|togel|sbobet|rtp\s*live|pinjol|dana\s*kaget|bokep|porn|anjing|bangsat|bajingan|kontol|memek|ngentot|goblog|goblok|tolol|jancok|asu)\b/i.test(text)) {
+    return 'Teks mengandung kata tidak pantas atau promosi yang tidak diperbolehkan.';
   }
   if (/(.)\1{7,}/.test(text)) {
     return 'Teks terdeteksi mengandung pengulangan karakter berlebihan.';
@@ -1865,24 +1871,37 @@ app.get('/api/reviews/challenge', (req, res) => {
 
 app.get('/api/reviews', async (req, res) => {
   try {
+    const limit = Math.min(30, Math.max(1, parseInt(req.query.limit, 10) || 5));
+    const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+
     const rows = await db.prepare(`
-      SELECT id, name, role, rating, category, message, created_at
+      SELECT id, name, role, category, message, created_at
       FROM reviews
       WHERE status = 'approved'
       ORDER BY created_at DESC, id DESC
-      LIMIT 30
-    `).all();
+      LIMIT ? OFFSET ?
+    `).all(limit, offset);
+
     const stats = await db.prepare(`
-      SELECT COUNT(*) AS total, COALESCE(AVG(rating), 0) AS avg_rating
+      SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN category = 'Ulasan' THEN 1 ELSE 0 END) AS ulasan_count,
+        SUM(CASE WHEN category = 'Saran' THEN 1 ELSE 0 END) AS saran_count,
+        SUM(CASE WHEN category = 'Laporan' THEN 1 ELSE 0 END) AS laporan_count
       FROM reviews
       WHERE status = 'approved'
     `).get();
+
+    const total = Number(stats?.total || 0);
     res.json({
       success: true,
       reviews: rows,
+      hasMore: offset + rows.length < total,
       stats: {
-        total: Number(stats?.total || 0),
-        averageRating: Number(Number(stats?.avg_rating || 0).toFixed(1))
+        total,
+        ulasanCount: Number(stats?.ulasan_count || 0),
+        saranCount: Number(stats?.saran_count || 0),
+        laporanCount: Number(stats?.laporan_count || 0)
       }
     });
   } catch (err) {
@@ -1893,7 +1912,7 @@ app.get('/api/reviews', async (req, res) => {
 app.post('/api/reviews', async (req, res) => {
   try {
     const {
-      name, role, rating, category, message,
+      name, role, category, message, anonymous,
       website, challengeToken, challengeAnswer, fingerprint
     } = req.body || {};
 
@@ -1909,14 +1928,14 @@ app.post('/api/reviews', async (req, res) => {
     }
 
     // 3. Input validation & sanitization
-    const cleanName = sanitizePlainText(name);
+    const isAnon = anonymous === true || anonymous === 'true' || anonymous === '1';
+    const cleanName = isAnon ? 'Anonim' : sanitizePlainText(name);
     const cleanMessage = sanitizePlainText(message);
     const cleanRole = ['Orang Tua', 'Guru / Pendidik', 'Lainnya'].includes(role) ? role : 'Orang Tua';
     const cleanCategory = ['Ulasan', 'Saran', 'Laporan'].includes(category) ? category : 'Ulasan';
-    const numRating = Math.min(5, Math.max(1, parseInt(rating, 10) || 5));
 
-    if (cleanName.length < 2 || cleanName.length > 50) {
-      return res.status(400).json({ success: false, message: 'Nama harus antara 2 hingga 50 karakter.' });
+    if (!isAnon && (cleanName.length < 2 || cleanName.length > 50)) {
+      return res.status(400).json({ success: false, message: 'Nama harus antara 2 hingga 50 karakter (atau centang opsi Anonim).' });
     }
     if (cleanMessage.length < 10 || cleanMessage.length > 500) {
       return res.status(400).json({ success: false, message: 'Saran atau ulasan minimal 10 karakter dan maksimal 500 karakter.' });
@@ -1927,7 +1946,7 @@ app.post('/api/reviews', async (req, res) => {
       return res.status(400).json({ success: false, message: spamReason });
     }
 
-    // 4. Rate limiting per IP & fingerprint (cooldown 3 minutes + max 3 per 24h)
+    // 4. Server-side rate limiting (cooldown 3 min, max 2/hour, max 3/day)
     const ipHash = hashClientIp(req);
     const cleanFp = String(fingerprint || '').slice(0, 64);
 
@@ -1944,6 +1963,17 @@ app.post('/api/reviews', async (req, res) => {
       });
     }
 
+    const hourlyCountRow = await db.prepare(`
+      SELECT COUNT(*) AS count FROM reviews
+      WHERE ip_hash = ? AND created_at >= datetime('now', '-1 hour')
+    `).get(ipHash);
+    if (Number(hourlyCountRow?.count || 0) >= 2) {
+      return res.status(429).json({
+        success: false,
+        message: 'Batas pengiriman per jam (maksimal 2 masukan per jam) telah tercapai.'
+      });
+    }
+
     const dailyCountRow = await db.prepare(`
       SELECT COUNT(*) AS count FROM reviews
       WHERE ip_hash = ? AND created_at >= datetime('now', '-1 day')
@@ -1951,7 +1981,7 @@ app.post('/api/reviews', async (req, res) => {
     if (Number(dailyCountRow?.count || 0) >= 3) {
       return res.status(429).json({
         success: false,
-        message: 'Batas pengiriman harian (maksimal 3 ulasan per hari) telah tercapai.'
+        message: 'Batas pengiriman harian (maksimal 3 masukan per hari) telah tercapai.'
       });
     }
 
@@ -1970,12 +2000,13 @@ app.post('/api/reviews', async (req, res) => {
 
     await db.prepare(`
       INSERT INTO reviews (name, role, rating, category, message, ip_hash, fingerprint, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'approved')
-    `).run(cleanName, cleanRole, numRating, cleanCategory, cleanMessage, ipHash, cleanFp);
+      VALUES (?, ?, 5, ?, ?, ?, ?, 'pending')
+    `).run(cleanName, cleanRole, cleanCategory, cleanMessage, ipHash, cleanFp);
 
     res.json({
       success: true,
-      message: 'Terima kasih! Saran dan ulasan Anda telah berhasil diterbitkan.'
+      pendingModeration: true,
+      message: 'Terima kasih! Masukan Anda telah diterima dan sedang menunggu persetujuan admin sebelum ditampilkan.'
     });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal menyimpan ulasan.', error: err.message });
@@ -1987,12 +2018,31 @@ app.get('/api/admin/reviews', requireAuth, async (req, res) => {
     const rows = await db.prepare(`
       SELECT id, name, role, category, message, status, created_at
       FROM reviews
-      ORDER BY created_at DESC, id DESC
+      ORDER BY CASE WHEN status = 'pending' THEN 0 ELSE 1 END, created_at DESC, id DESC
       LIMIT 100
     `).all();
     res.json({ success: true, data: rows });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memuat daftar saran & ulasan.' });
+  }
+});
+
+app.put('/api/admin/reviews/:id/status', requireAuth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const nextStatus = ['approved', 'pending', 'hidden'].includes(req.body?.status) ? req.body.status : null;
+    if (!nextStatus) {
+      return res.status(400).json({ success: false, message: 'Status tidak valid.' });
+    }
+    await db.prepare('UPDATE reviews SET status = ? WHERE id = ?').run(nextStatus, id);
+    await recordAdminAudit(req, {
+      category: 'reviews_moderation',
+      action: 'UPDATE_REVIEW_STATUS',
+      details: `Mengubah status ulasan ID #${id} menjadi ${nextStatus}`
+    });
+    res.json({ success: true, message: `Status masukan berhasil diubah menjadi ${nextStatus}.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Gagal memperbarui status ulasan.' });
   }
 });
 
