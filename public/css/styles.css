@@ -3315,6 +3315,16 @@ select:focus-visible {
   box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14);
 }
 
+.review-field input:disabled,
+.review-field select:disabled,
+.review-field textarea:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  background: rgba(148, 163, 184, 0.18);
+  color: var(--text-muted);
+  border-color: var(--glass-border-subtle);
+}
+
 .review-antispam-box {
   padding: 12px;
   border-radius: 12px;

@@ -488,8 +488,8 @@
 
             <div class="form-row-2">
               <div class="form-field">
-                <label for="reviewName">Nama Anda</label>
-                <input type="text" id="reviewName" name="name" placeholder="Contoh: Ibu Rina" maxlength="50" required>
+                <label for="reviewName">Nama atau Inisial</label>
+                <input type="text" id="reviewName" name="name" placeholder="Contoh: Ibu Rina atau I. R." maxlength="50" required>
               </div>
               <div class="form-field">
                 <label for="reviewRole">Peran</label>
@@ -500,6 +500,11 @@
                 </select>
               </div>
             </div>
+
+            <label class="review-anon-check" for="reviewAnonymous">
+              <input type="checkbox" id="reviewAnonymous" name="anonymous">
+              <span>Kirim sebagai <strong>Anonim</strong> (input nama tetap tampil namun dinonaktifkan)</span>
+            </label>
 
             <div class="form-field">
               <label for="reviewCategory">Kategori</label>
@@ -537,11 +542,25 @@
           <div class="reviews-list-glass">
             <div class="reviews-summary-bar">
               <h3 class="review-panel-title" style="margin: 0;">Daftar Saran &amp; Ulasan</h3>
-              <span class="reviews-total-pill" id="reviewsTotalCount">Memuat ulasan...</span>
+              <span class="reviews-total-pill" id="reviewsTotalCount">Memuat...</span>
+            </div>
+
+            <div class="reviews-mini-stats" id="reviewsMiniStats" aria-label="Ringkasan kategori masukan">
+              <div class="mini-stat-chip"><strong id="statUlasanCount">0</strong><span>Ulasan</span></div>
+              <div class="mini-stat-chip"><strong id="statSaranCount">0</strong><span>Saran</span></div>
+              <div class="mini-stat-chip"><strong id="statLaporanCount">0</strong><span>Laporan</span></div>
             </div>
 
             <div class="reviews-scroll-list" id="reviewsListContainer">
               <p class="reviews-empty-hint">Memuat saran &amp; ulasan terbaru...</p>
+            </div>
+
+            <button type="button" class="btn-load-more-reviews" id="btnLoadMoreReviews" style="display: none;">
+              Muat Lebih Banyak
+            </button>
+
+            <div class="reviews-invite-box" id="reviewsInviteNote" style="display: none;">
+              Masukan Anda membantu kami mengembangkan POTER EDUGAMES agar lebih bermanfaat dan aman bagi anak-anak. Jadilah yang pertama memberi ulasan atau saran!
             </div>
           </div>
         </div>
