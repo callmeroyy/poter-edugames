@@ -151,7 +151,17 @@ async function initializePostgres() {
       value TEXT NOT NULL,
       updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      id BIGSERIAL PRIMARY KEY,
+      ip TEXT NOT NULL,
+      username TEXT,
+      failed_count INTEGER NOT NULL DEFAULT 1,
+      locked_until TIMESTAMPTZ DEFAULT NULL,
+      last_attempt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
     ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT DEFAULT 'poteredugames@gmail.com';
+    ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
     CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON access_logs(timestamp);
     CREATE INDEX IF NOT EXISTS idx_download_logs_verified ON download_logs(verified, timestamp);
     CREATE INDEX IF NOT EXISTS idx_install_logs_verified ON install_logs(verified, timestamp);
@@ -162,6 +172,8 @@ async function initializePostgres() {
     CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
     CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at);
     CREATE INDEX IF NOT EXISTS idx_reviews_ip_hash ON reviews(ip_hash, created_at);
+    CREATE INDEX IF NOT EXISTS idx_login_attempts_ip_time ON login_attempts(ip, last_attempt);
+    CREATE INDEX IF NOT EXISTS idx_login_attempts_user_time ON login_attempts(username, last_attempt);
   `);
 }
 
@@ -238,16 +250,30 @@ function initializeSqlite() {
       value TEXT NOT NULL,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip TEXT NOT NULL,
+      username TEXT,
+      failed_count INTEGER NOT NULL DEFAULT 1,
+      locked_until DATETIME DEFAULT NULL,
+      last_attempt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
     CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires ON admin_sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash);
     CREATE INDEX IF NOT EXISTS idx_password_resets_expires ON password_resets(expires_at);
     CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at);
     CREATE INDEX IF NOT EXISTS idx_reviews_ip_hash ON reviews(ip_hash, created_at);
+    CREATE INDEX IF NOT EXISTS idx_login_attempts_ip_time ON login_attempts(ip, last_attempt);
+    CREATE INDEX IF NOT EXISTS idx_login_attempts_user_time ON login_attempts(username, last_attempt);
   `);
   const versionColumns = sqlite.prepare('PRAGMA table_info(app_versions)').all().map(column => column.name);
   if (!versionColumns.includes('download_enabled')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN download_enabled INTEGER NOT NULL DEFAULT 1');
   if (!versionColumns.includes('deleted_at')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN deleted_at DATETIME DEFAULT NULL');
   if (!versionColumns.includes('download_url')) sqlite.exec('ALTER TABLE app_versions ADD COLUMN download_url TEXT');
+
+  const sessionColumns = sqlite.prepare('PRAGMA table_info(admin_sessions)').all().map(column => column.name);
+  if (!sessionColumns.includes('last_active_at')) sqlite.exec('ALTER TABLE admin_sessions ADD COLUMN last_active_at DATETIME DEFAULT CURRENT_TIMESTAMP');
 
   const userColumns = sqlite.prepare('PRAGMA table_info(users)').all().map(column => column.name);
   if (!userColumns.includes('email')) sqlite.exec("ALTER TABLE users ADD COLUMN email TEXT DEFAULT 'poteredugames@gmail.com'");
@@ -258,7 +284,7 @@ async function seedDefaults() {
   const existingAdmin = await db.prepare('SELECT id FROM users WHERE username = ?').get(username);
   if (!existingAdmin) {
     const password = process.env.ADMIN_PASSWORD || (!usePostgres ? 'poter202612345678910' : crypto.randomBytes(24).toString('base64url'));
-    await db.prepare('INSERT INTO users (username, password_hash, role, email) VALUES (?, ?, ?, ?)').run(username, bcrypt.hashSync(password, 10), 'admin', 'poteredugames@gmail.com');
+    await db.prepare('INSERT INTO users (username, password_hash, role, email) VALUES (?, ?, ?, ?)').run(username, bcrypt.hashSync(password, 12), 'admin', 'poteredugames@gmail.com');
     if (usePostgres && !process.env.ADMIN_PASSWORD) console.warn('ADMIN_PASSWORD belum diatur; atur sebelum login produksi.');
   } else {
     await db.prepare("UPDATE users SET email = 'poteredugames@gmail.com' WHERE username = ? AND (email IS NULL OR email = '')").run(username);

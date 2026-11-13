@@ -22,11 +22,58 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'");
   if (isProduction) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   next();
 });
+
+// Cache-Control: no-store for admin panels and authenticated/admin APIs to prevent sensitive caching
+app.use(['/admin', '/api/admin', '/api/dashboard', '/api/auth'], (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
+// CSRF Defense: Enforce same-origin checks on all mutating methods (POST, PUT, DELETE, PATCH)
+function verifySameOrigin(req, res, next) {
+  const method = req.method.toUpperCase();
+  if (!['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+    return next();
+  }
+
+  // Exempt native telemetry ping from game app (which has no browser origin headers)
+  if (req.path === '/api/track/install') {
+    return next();
+  }
+
+  // Modern browser Sec-Fetch-Site protection
+  const fetchSite = req.headers['sec-fetch-site'];
+  if (fetchSite === 'cross-site') {
+    return res.status(403).json({ success: false, message: 'Permintaan lintas-asal (cross-site) ditolak demi keamanan.' });
+  }
+
+  // Origin / Host comparison
+  const origin = req.headers.origin;
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  if (origin && host) {
+    try {
+      const originHost = new URL(origin).host;
+      if (originHost !== host) {
+        return res.status(403).json({ success: false, message: 'Asal permintaan (Origin) tidak valid.' });
+      }
+    } catch (_) {
+      return res.status(403).json({ success: false, message: 'Format header Origin tidak valid.' });
+    }
+  }
+
+  next();
+}
+
+app.use(verifySameOrigin);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -130,20 +177,49 @@ function sessionTokenHash(token) {
 
 async function getAuthenticatedAdmin(req) {
   const token = req.cookies.poter_admin_token;
-  return token
-    ? await db.prepare(`
-        SELECT user_id AS id, username, role, created_at
-        FROM admin_sessions
-        WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP
-      `).get(sessionTokenHash(token))
-    : null;
+  if (!token) return null;
+
+  const tokenHash = sessionTokenHash(token);
+  const session = await db.prepare(`
+    SELECT user_id AS id, username, role, created_at, expires_at, last_active_at
+    FROM admin_sessions
+    WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP
+  `).get(tokenHash);
+
+  if (!session) return null;
+
+  // Enforce 60-minute idle timeout (session terminates if inactive for 60 minutes)
+  const IDLE_TIMEOUT_MS = 60 * 60 * 1000;
+  const lastActiveTime = session.last_active_at
+    ? new Date(session.last_active_at).getTime()
+    : (session.created_at ? new Date(session.created_at).getTime() : Date.now());
+
+  if (Date.now() - lastActiveTime > IDLE_TIMEOUT_MS) {
+    await db.prepare('DELETE FROM admin_sessions WHERE token_hash = ?').run(tokenHash);
+    return null;
+  }
+
+  // Throttle database update of last_active_at (at most once every 2 minutes)
+  if (Date.now() - lastActiveTime > 2 * 60 * 1000) {
+    db.prepare('UPDATE admin_sessions SET last_active_at = CURRENT_TIMESTAMP WHERE token_hash = ?')
+      .run(tokenHash)
+      .catch(err => console.warn('Failed to update session activity:', err.message));
+  }
+
+  return session;
 }
 
 async function requireAuth(req, res, next) {
   const session = await getAuthenticatedAdmin(req);
   if (!session) {
+    res.clearCookie('poter_admin_token', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isProduction,
+      path: '/'
+    });
     if (req.xhr || req.headers.accept?.includes('json')) {
-      return res.status(401).json({ error: 'Sesi login tidak valid atau telah berakhir.' });
+      return res.status(401).json({ error: 'Sesi login tidak valid atau telah berakhir karena waktu tunggu (idle timeout).' });
     }
     return res.redirect('/admin/login.html');
   }
@@ -451,35 +527,43 @@ app.post('/api/track/install', async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// AUTHENTICATION ROUTES & BRUTE-FORCE PROTECTION
+// AUTHENTICATION ROUTES & DATABASE-BACKED RATE LIMITING
 // -------------------------------------------------------------
-const loginAttempts = new Map();
-
-function cleanLoginAttempts() {
-  const now = Date.now();
-  for (const [key, record] of loginAttempts.entries()) {
-    if (record.lockUntil && record.lockUntil < now) {
-      loginAttempts.delete(key);
-    } else if (now - record.lastAttempt > 30 * 60 * 1000) {
-      loginAttempts.delete(key);
-    }
-  }
-}
 
 app.post('/api/auth/login', async (req, res) => {
-  cleanLoginAttempts();
-  const { username, password } = req.body;
+  const { username, password, rememberMe } = req.body || {};
   const clientIp = getClientIp(req);
-  const attemptKey = `${clientIp}_${String(username || 'unknown').toLowerCase().trim()}`;
-  const record = loginAttempts.get(attemptKey) || { count: 0, lockUntil: 0, lastAttempt: Date.now() };
+  const cleanUsername = String(username || '').trim().toLowerCase();
 
-  // Check if IP/Username is currently locked out
-  if (record.lockUntil && record.lockUntil > Date.now()) {
-    const minutesLeft = Math.ceil((record.lockUntil - Date.now()) / 60000);
+  // 1. Check if IP is currently locked out in database
+  const ipLock = await db.prepare(`
+    SELECT locked_until FROM login_attempts
+    WHERE ip = ? AND locked_until > CURRENT_TIMESTAMP
+    ORDER BY id DESC LIMIT 1
+  `).get(clientIp);
+
+  if (ipLock) {
+    const lockTime = new Date(ipLock.locked_until).getTime();
+    const minutesLeft = Math.max(1, Math.ceil((lockTime - Date.now()) / 60000));
     return res.status(429).json({
       success: false,
-      message: `Terlalu banyak percobaan login gagal. Akun/IP terkunci sementara. Silakan coba lagi dalam ${minutesLeft} menit.`
+      message: `Alamat IP Anda terkunci sementara karena terlalu banyak percobaan login gagal. Silakan coba lagi dalam ${minutesLeft} menit.`
     });
+  }
+
+  // 2. Account-wide rate limit (DoS / botnet brute-force protection: max 20 fails across all IPs in 1 hour)
+  if (cleanUsername) {
+    const accountAttempts = await db.prepare(`
+      SELECT COUNT(*) AS count FROM login_attempts
+      WHERE LOWER(username) = ? AND last_attempt >= datetime('now', '-1 hour')
+    `).get(cleanUsername);
+
+    if (Number(accountAttempts?.count || 0) >= 20) {
+      return res.status(429).json({
+        success: false,
+        message: 'Terlalu banyak percobaan masuk untuk akun ini dari berbagai jaringan. Silakan tunggu 1 jam sebelum mencoba lagi demi keamanan.'
+      });
+    }
   }
 
   if (!username || !password) {
@@ -493,56 +577,72 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Nama pengguna dan kata sandi wajib diisi.' });
   }
 
-  const user = await db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  const user = await db.prepare('SELECT * FROM users WHERE LOWER(username) = ?').get(cleanUsername);
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    record.count += 1;
-    record.lastAttempt = Date.now();
+    // Count failed attempts from this IP in the last 15 minutes
+    const ipAttempts = await db.prepare(`
+      SELECT COUNT(*) AS count FROM login_attempts
+      WHERE ip = ? AND last_attempt >= datetime('now', '-15 minutes')
+    `).get(clientIp);
 
-    if (record.count >= 5) {
-      record.lockUntil = Date.now() + 15 * 60 * 1000; // 15-minute lockout
-      loginAttempts.set(attemptKey, record);
+    const failCount = Number(ipAttempts?.count || 0) + 1;
+    let lockedUntil = null;
+    if (failCount >= 5) {
+      lockedUntil = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    }
+
+    await db.prepare(`
+      INSERT INTO login_attempts (ip, username, failed_count, locked_until, last_attempt)
+      VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).run(clientIp, cleanUsername, failCount, lockedUntil);
+
+    if (failCount >= 5) {
       await recordAdminAudit(req, {
-        user: { username },
+        user: { username: cleanUsername },
         category: 'authentication',
         action: 'LOGIN_LOCKOUT',
-        details: 'Akses diblokir sementara karena 5 kali percobaan login gagal berturut-turut',
+        details: `IP ${clientIp} diblokir 15 menit setelah 5 kali percobaan gagal berturut-turut`,
         status: 'denied'
       });
       return res.status(429).json({
         success: false,
-        message: 'Terlalu banyak percobaan login gagal (5 kali). Akses Anda diblokir sementara selama 15 menit demi keamanan.'
+        message: 'Terlalu banyak percobaan login gagal (5 kali). Akses dari IP Anda diblokir sementara selama 15 menit demi keamanan.'
       });
     }
 
-    loginAttempts.set(attemptKey, record);
     await recordAdminAudit(req, {
-      user: { username },
+      user: { username: cleanUsername },
       category: 'authentication',
       action: 'LOGIN_FAILED',
-      details: `Kredensial tidak cocok (Percobaan ${record.count}/5)`,
+      details: `Kredensial tidak cocok (Percobaan ${failCount}/5)`,
       status: 'denied'
     });
+
     return res.status(401).json({
       success: false,
-      message: `Nama pengguna atau kata sandi tidak cocok. Sisa kesempatan sebelum diblokir: ${5 - record.count}.`
+      message: `Nama pengguna atau kata sandi tidak cocok. Sisa kesempatan sebelum diblokir: ${5 - failCount}.`
     });
   }
 
-  // Clear failed attempt record on successful login
-  loginAttempts.delete(attemptKey);
+  // Clear failed login attempts on successful login
+  await db.prepare('DELETE FROM login_attempts WHERE ip = ? OR LOWER(username) = ?').run(clientIp, cleanUsername);
 
-  // Store only a token hash so a database leak cannot expose active cookies.
+  // Prune expired sessions and remove any existing sessions for this user (session rotation)
+  await db.prepare('DELETE FROM admin_sessions WHERE expires_at <= CURRENT_TIMESTAMP OR user_id = ?').run(user.id);
+
+  // Session duration: 24 hours if 'Ingat Saya' is checked, otherwise 8 hours
+  const sessionDurationMs = rememberMe ? 24 * 60 * 60 * 1000 : 8 * 60 * 60 * 1000;
   const token = `poter_sess_${crypto.randomBytes(32).toString('hex')}`;
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  await db.prepare('DELETE FROM admin_sessions WHERE expires_at <= CURRENT_TIMESTAMP').run();
+  const expiresAt = new Date(Date.now() + sessionDurationMs).toISOString();
+
   await db.prepare(`
-    INSERT INTO admin_sessions (token_hash, user_id, username, role, expires_at)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO admin_sessions (token_hash, user_id, username, role, expires_at, last_active_at)
+    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
   `).run(sessionTokenHash(token), user.id, user.username, user.role, expiresAt);
 
   res.cookie('poter_admin_token', token, {
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: sessionDurationMs,
     sameSite: 'lax',
     secure: isProduction,
     path: '/'
@@ -552,7 +652,7 @@ app.post('/api/auth/login', async (req, res) => {
     user,
     category: 'authentication',
     action: 'LOGIN_SUCCESS',
-    details: `Masuk sebagai ${user.role}`
+    details: `Masuk sebagai ${user.role} (${rememberMe ? 'Ingat Saya 24 jam' : 'Sesi 8 jam'})`
   });
 
   res.json({ success: true, username: user.username, role: user.role });
@@ -607,17 +707,34 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Alamat email wajib diisi dengan format yang benar.' });
     }
 
-    // Rate limiting: check recent requests in last 15 minutes
+    const clientIp = getClientIp(req);
+    // IP-based Rate limiting: max 5 requests per 15 minutes per IP
+    const recentIpRequests = await db.prepare(`
+      SELECT COUNT(*) AS count FROM admin_audit_logs
+      WHERE action = 'FORGOT_PASSWORD_REQUESTED' AND ip = ? AND timestamp >= datetime('now', '-15 minutes')
+    `).get(clientIp);
+
+    if (Number(recentIpRequests?.count || 0) >= 5) {
+      return res.status(429).json({
+        success: false,
+        message: 'Terlalu banyak permintaan reset kata sandi dari jaringan Anda. Silakan tunggu 15 menit.'
+      });
+    }
+
+    // Rate limiting across system: check recent requests in last 15 minutes
     const recentRequests = await db.prepare(`
       SELECT COUNT(*) AS count FROM password_resets
       WHERE created_at >= datetime('now', '-15 minutes')
     `).get();
-    if (Number(recentRequests?.count || 0) > 10) {
+    if (Number(recentRequests?.count || 0) > 15) {
       return res.status(429).json({
         success: false,
         message: 'Terlalu banyak permintaan reset kata sandi. Silakan tunggu beberapa saat lagi.'
       });
     }
+
+    // Uniform response to prevent email / user enumeration attacks
+    const UNIFORM_SUCCESS_MSG = 'Jika email terdaftar dalam sistem, tautan atur ulang kata sandi telah dikirimkan ke email Anda. Silakan periksa kotak masuk atau folder spam.';
 
     // Check matching user
     const user = await db.prepare('SELECT id, username, email FROM users WHERE LOWER(email) = ? OR (username = ? AND ? = ?)')
@@ -626,7 +743,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     if (!user) {
       return res.json({
         success: true,
-        message: 'Jika email terdaftar, instruksi atur ulang kata sandi telah dikirim ke email Anda.'
+        message: UNIFORM_SUCCESS_MSG
       });
     }
 
@@ -651,12 +768,12 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       user,
       category: 'authentication',
       action: 'FORGOT_PASSWORD_REQUESTED',
-      details: `Permintaan reset kata sandi dikirim ke ${email}`
+      details: `Permintaan reset kata sandi diproses untuk ${email}`
     });
 
     res.json({
       success: true,
-      message: 'Instruksi atur ulang kata sandi telah dikirim ke email Anda. Periksa kotak masuk (atau folder spam).'
+      message: UNIFORM_SUCCESS_MSG
     });
   } catch (err) {
     console.error('Forgot password route error:', err);
@@ -721,7 +838,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
       });
     }
 
-    const passwordHash = bcrypt.hashSync(newPassword, 10);
+    const passwordHash = bcrypt.hashSync(newPassword, 12);
 
     await db.transaction(async tx => {
       // 1. Update user password

@@ -120,8 +120,24 @@
     }
     .form-row-extra {
       display: flex;
-      justify-content: flex-end;
-      margin: -6px 0 16px 0;
+      justify-content: space-between;
+      align-items: center;
+      margin: -4px 0 16px 0;
+    }
+    .remember-me-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .remember-me-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
     }
     .btn-forgot-password {
       background: none;
@@ -295,6 +311,10 @@
       </div>
 
       <div class="form-row-extra">
+        <label class="remember-me-label" for="rememberMeInput">
+          <input type="checkbox" id="rememberMeInput" name="rememberMe">
+          <span>Ingat saya (24 jam)</span>
+        </label>
         <button type="button" class="btn-forgot-password" id="openForgotModal">Lupa kata sandi?</button>
       </div>
 
@@ -362,6 +382,7 @@
       const loginForm = document.getElementById('loginForm');
       const usernameInput = document.getElementById('usernameInput');
       const passwordInput = document.getElementById('passwordInput');
+      const rememberMeInput = document.getElementById('rememberMeInput');
       const loginError = document.getElementById('loginError');
       const submitBtn = document.getElementById('submitBtn');
 
@@ -446,7 +467,8 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               username: usernameInput.value.trim(),
-              password: passwordInput.value
+              password: passwordInput.value,
+              rememberMe: Boolean(rememberMeInput?.checked)
             })
           });
 
