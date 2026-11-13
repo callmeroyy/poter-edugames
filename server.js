@@ -14,6 +14,19 @@ const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+
+// Global Security Headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (isProduction) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -438,11 +451,37 @@ app.post('/api/track/install', async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// AUTHENTICATION ROUTES
+// AUTHENTICATION ROUTES & BRUTE-FORCE PROTECTION
 // -------------------------------------------------------------
+const loginAttempts = new Map();
+
+function cleanLoginAttempts() {
+  const now = Date.now();
+  for (const [key, record] of loginAttempts.entries()) {
+    if (record.lockUntil && record.lockUntil < now) {
+      loginAttempts.delete(key);
+    } else if (now - record.lastAttempt > 30 * 60 * 1000) {
+      loginAttempts.delete(key);
+    }
+  }
+}
 
 app.post('/api/auth/login', async (req, res) => {
+  cleanLoginAttempts();
   const { username, password } = req.body;
+  const clientIp = getClientIp(req);
+  const attemptKey = `${clientIp}_${String(username || 'unknown').toLowerCase().trim()}`;
+  const record = loginAttempts.get(attemptKey) || { count: 0, lockUntil: 0, lastAttempt: Date.now() };
+
+  // Check if IP/Username is currently locked out
+  if (record.lockUntil && record.lockUntil > Date.now()) {
+    const minutesLeft = Math.ceil((record.lockUntil - Date.now()) / 60000);
+    return res.status(429).json({
+      success: false,
+      message: `Terlalu banyak percobaan login gagal. Akun/IP terkunci sementara. Silakan coba lagi dalam ${minutesLeft} menit.`
+    });
+  }
+
   if (!username || !password) {
     await recordAdminAudit(req, {
       user: { username: username || 'unknown' },
@@ -456,15 +495,41 @@ app.post('/api/auth/login', async (req, res) => {
 
   const user = await db.prepare('SELECT * FROM users WHERE username = ?').get(username);
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+    record.count += 1;
+    record.lastAttempt = Date.now();
+
+    if (record.count >= 5) {
+      record.lockUntil = Date.now() + 15 * 60 * 1000; // 15-minute lockout
+      loginAttempts.set(attemptKey, record);
+      await recordAdminAudit(req, {
+        user: { username },
+        category: 'authentication',
+        action: 'LOGIN_LOCKOUT',
+        details: 'Akses diblokir sementara karena 5 kali percobaan login gagal berturut-turut',
+        status: 'denied'
+      });
+      return res.status(429).json({
+        success: false,
+        message: 'Terlalu banyak percobaan login gagal (5 kali). Akses Anda diblokir sementara selama 15 menit demi keamanan.'
+      });
+    }
+
+    loginAttempts.set(attemptKey, record);
     await recordAdminAudit(req, {
       user: { username },
       category: 'authentication',
       action: 'LOGIN_FAILED',
-      details: 'Kredensial tidak cocok',
+      details: `Kredensial tidak cocok (Percobaan ${record.count}/5)`,
       status: 'denied'
     });
-    return res.status(401).json({ success: false, message: 'Nama pengguna atau kata sandi tidak cocok.' });
+    return res.status(401).json({
+      success: false,
+      message: `Nama pengguna atau kata sandi tidak cocok. Sisa kesempatan sebelum diblokir: ${5 - record.count}.`
+    });
   }
+
+  // Clear failed attempt record on successful login
+  loginAttempts.delete(attemptKey);
 
   // Store only a token hash so a database leak cannot expose active cookies.
   const token = `poter_sess_${crypto.randomBytes(32).toString('hex')}`;
@@ -479,7 +544,8 @@ app.post('/api/auth/login', async (req, res) => {
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
+    secure: isProduction,
+    path: '/'
   });
 
   await recordAdminAudit(req, {
@@ -509,7 +575,12 @@ app.post('/api/auth/logout', async (req, res) => {
     }
     await db.prepare('DELETE FROM admin_sessions WHERE token_hash = ?').run(tokenHash);
   }
-  res.clearCookie('poter_admin_token');
+  res.clearCookie('poter_admin_token', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProduction,
+    path: '/'
+  });
   res.json({ success: true, message: 'Berhasil keluar.' });
 });
 
