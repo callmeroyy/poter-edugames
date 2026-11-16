@@ -1,5 +1,18 @@
 // POTER EDUGAMES - Admin Dashboard Logic
 
+// Global fetch interceptor to handle session expiration (idle timeout / 401)
+const _originalFetch = window.fetch;
+window.fetch = async function (...args) {
+  const res = await _originalFetch(...args);
+  if (res.status === 401) {
+    const url = String(args[0] || '');
+    if (!url.includes('/api/auth/login')) {
+      window.location.href = '/admin/login.html';
+    }
+  }
+  return res;
+};
+
 let trendChartInstance = null;
 let osChartInstance = null;
 
@@ -1370,10 +1383,20 @@ async function loadAdminReviews() {
   tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;">Memuat saran &amp; ulasan...</td></tr>';
 
   try {
-    const res = await fetch('/api/admin/reviews');
+    const res = await fetch('/api/admin/reviews', {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.status === 401) {
+      window.location.href = '/admin/login.html';
+      return;
+    }
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('Sesi login telah berakhir atau format respon server tidak valid. Silakan masuk kembali.');
+    }
     const json = await res.json();
     if (!res.ok || !json.success) {
-      throw new Error(json.message || 'Gagal memuat data.');
+      throw new Error(json.message || json.error || 'Gagal memuat data.');
     }
 
     const rows = json.data || [];

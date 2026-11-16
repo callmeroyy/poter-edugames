@@ -218,8 +218,13 @@ async function requireAuth(req, res, next) {
       secure: isProduction,
       path: '/'
     });
-    if (req.xhr || req.headers.accept?.includes('json')) {
-      return res.status(401).json({ error: 'Sesi login tidak valid atau telah berakhir karena waktu tunggu (idle timeout).' });
+    const isApiRequest = req.path.startsWith('/api') || req.originalUrl?.startsWith('/api') || req.xhr || req.headers.accept?.includes('json');
+    if (isApiRequest) {
+      return res.status(401).json({
+        success: false,
+        authenticated: false,
+        error: 'Sesi login tidak valid atau telah berakhir karena batas waktu (idle timeout). Silakan masuk kembali.'
+      });
     }
     return res.redirect('/admin/login.html');
   }
