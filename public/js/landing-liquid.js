@@ -678,6 +678,107 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // -----------------------------------------------------------
+  // Sliding Liquid Glass Navigation Indicator (Landing Liquid)
+  // -----------------------------------------------------------
+  function initNavGlassSlider() {
+    const nav = document.querySelector('.nav-links');
+    const slider = nav?.querySelector('.nav-glass-slider');
+    const links = nav ? Array.from(nav.querySelectorAll('.nav-link')) : [];
+    if (!nav || !slider || links.length === 0) return;
+
+    const currentHash = window.location.hash;
+    let activeLink = links.find(l => l.getAttribute('href') === currentHash) ||
+                     links.find(l => l.classList.contains('is-active')) ||
+                     links[0];
+    let isHovering = false;
+
+    function moveSlider(targetLink, isImmediate = false) {
+      if (!targetLink) {
+        slider.classList.remove('is-visible');
+        return;
+      }
+
+      const navRect = nav.getBoundingClientRect();
+      const linkRect = targetLink.getBoundingClientRect();
+
+      const left = linkRect.left - navRect.left;
+      const width = linkRect.width;
+
+      slider.style.setProperty('--slider-x', `${left}px`);
+      slider.style.setProperty('--slider-width', `${width}px`);
+
+      if (isImmediate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        slider.style.transition = 'none';
+        slider.style.transform = `translate3d(${left}px, 0, 0)`;
+        slider.style.width = `${width}px`;
+        slider.offsetHeight;
+        slider.style.transition = '';
+      } else {
+        slider.style.transform = `translate3d(${left}px, 0, 0)`;
+        slider.style.width = `${width}px`;
+      }
+
+      slider.classList.add('is-visible');
+    }
+
+    function setActive(targetLink) {
+      if (!targetLink) return;
+      links.forEach(l => {
+        const isCurrent = l === targetLink;
+        l.classList.toggle('is-active', isCurrent);
+        if (isCurrent) {
+          l.setAttribute('aria-current', 'page');
+        } else {
+          l.removeAttribute('aria-current');
+        }
+      });
+      activeLink = targetLink;
+      if (!isHovering) {
+        moveSlider(activeLink);
+      }
+    }
+
+    links.forEach(link => {
+      link.addEventListener('pointerenter', () => {
+        isHovering = true;
+        moveSlider(link);
+      });
+
+      link.addEventListener('focus', () => {
+        isHovering = true;
+        moveSlider(link);
+      });
+
+      link.addEventListener('click', () => {
+        setActive(link);
+      });
+    });
+
+    nav.addEventListener('pointerleave', () => {
+      isHovering = false;
+      moveSlider(activeLink);
+    });
+
+    nav.addEventListener('focusout', (e) => {
+      if (!nav.contains(e.relatedTarget)) {
+        isHovering = false;
+        moveSlider(activeLink);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      moveSlider(activeLink, true);
+    });
+
+    setActive(activeLink);
+    requestAnimationFrame(() => {
+      moveSlider(activeLink, true);
+    });
+  }
+
+  initNavGlassSlider();
+
   loadReviewChallenge();
   loadReviews(false);
 });

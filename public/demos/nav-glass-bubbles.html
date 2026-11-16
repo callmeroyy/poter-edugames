@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Demo Navbar Indikator Kaca — POTER EDUGAMES</title>
+  <link rel="icon" href="/assets/poter-logo.png" />
+  <link rel="stylesheet" href="/css/demo-nav-glass-bubbles.css" />
+</head>
+<body>
+  <header class="demo-header">
+    <a class="brand" href="/" aria-label="Kembali ke POTER EDUGAMES">
+      <img src="/assets/poter-logo.png" width="44" height="44" alt="" />
+      <span><strong>POTER EDUGAMES</strong><small>Demo interaksi navbar</small></span>
+    </a>
+    <a class="back-link" href="/">Kembali ke web utama</a>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="demo-title">
+      <p class="eyebrow">DEMO UI • BELUM DITERAPKAN</p>
+      <h1 id="demo-title">Satu panel kaca, bergerak mengikuti pilihan.</h1>
+      <p class="intro-copy">Arahkan mouse untuk melihat pratinjau, lalu tekan salah satu menu. Panel kaca bening mengempis menjadi kapsul cair, meluncur, lalu melebar lembut pada pilihan baru.</p>
+    </section>
+
+    <section class="nav-stage" aria-label="Demo navbar POTER EDUGAMES">
+      <div class="stage-glow" aria-hidden="true"></div>
+      <nav class="sliding-nav" aria-label="Contoh navigasi utama">
+        <span class="nav-indicator" aria-hidden="true"></span>
+        <a class="sliding-link is-active" href="#demo" aria-current="page">Demo Aplikasi</a>
+        <a class="sliding-link" href="#game">Game</a>
+        <a class="sliding-link" href="#versi">Versi</a>
+        <a class="sliding-link" href="#pasang">Cara Pasang</a>
+        <a class="sliding-link" href="#bantuan">Bantuan</a>
+        <a class="admin-link" href="#admin" aria-label="Contoh tombol login admin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path>
+          </svg>
+          <span>Login Admin</span>
+        </a>
+      </nav>
+      <p class="stage-hint"><span aria-hidden="true">↖</span> Tekan Game atau menu lain untuk memindahkan panel aktif</p>
+    </section>
+
+    <section class="notes" aria-label="Catatan rancangan">
+      <article><span>01</span><div><strong>Satu penanda</strong><p>Hanya satu panel kaca yang bergerak, sehingga navbar tetap tenang.</p></div></article>
+      <article><span>02</span><div><strong>Gerak terarah</strong><p>Panel mengikuti hover lalu menetap pada menu terakhir yang ditekan.</p></div></article>
+      <article><span>03</span><div><strong>Ramah keyboard</strong><p>Panel juga mengikuti fokus ketika menu dipilih menggunakan tombol Tab.</p></div></article>
+    </section>
+  </main>
+  <script src="/js/demo-nav-slider.js"></script>
+</body>
+</html>

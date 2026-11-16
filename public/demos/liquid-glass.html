@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Eksplorasi Demo UI Kaca Cair Bening (Liquid Crystal Glass) untuk POTER EDUGAMES — transparansi murni berfaset tajam dengan gerak fluida dinamis.">
+  <title>Demo UI Kaca Cair Bening — POTER EDUGAMES</title>
+  <link rel="icon" href="/assets/poter-logo.png">
+  <link rel="stylesheet" href="/css/demo-liquid-glass.css">
+</head>
+<body>
+
+  <!-- Demo Top Header -->
+  <header class="demo-header">
+    <a href="/" class="demo-brand" aria-label="Kembali ke Beranda POTER EDUGAMES">
+      <img src="/assets/poter-logo.png" width="44" height="44" alt="Logo Resmi POTER EDUGAMES">
+      <div class="demo-brand-text">
+        <strong>POTER EDUGAMES</strong>
+        <small>Eksplorasi UI Kaca Cair Bening</small>
+      </div>
+    </a>
+
+    <div class="demo-header-actions">
+      <a href="/landing-liquid.html" class="back-link" style="background: rgba(2, 132, 199, 0.2); border-color: rgba(56, 189, 248, 0.5); color: #BAE6FD;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        Buka Landing Page Penuh
+      </a>
+
+      <!-- Dark / Light Theme Toggle -->
+      <button type="button" class="theme-toggle-btn" id="themeToggle" aria-label="Ganti tema siang dan malam">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <span id="themeLabel">Mode Malam</span>
+      </button>
+
+      <a href="/" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Kembali ke Web Utama
+      </a>
+    </div>
+  </header>
+
+  <main class="demo-container">
+
+    <!-- Intro Headline Section -->
+    <section class="demo-intro">
+      <div class="demo-eyebrow">
+        <span class="demo-eyebrow-pill">Eksplorasi Desain UI • Kaca Cair (Liquid Crystal)</span>
+      </div>
+      <h1 class="demo-title">
+        Kaca bening transparan dengan <span>gerak fluida yang bernyawa.</span>
+      </h1>
+      <p class="demo-desc">
+        Menggantikan kesan buram plastik kusam (<em>frosted slop</em>). Menggunakan refraksi optik berkejernihan tinggi, kelenturan batas fluida (<em>liquid organic border</em>), gelombang riak sentuh, serta kilau kaustik yang bergerak halus mengikuti kursor Anda.
+      </p>
+    </section>
+
+    <!-- Interactive Control Toolbar -->
+    <section class="playground-toolbar" aria-label="Pengaturan Eksplorasi Kaca Cair">
+      <div class="toolbar-group">
+        <span class="toolbar-label">Gaya Fluida:</span>
+        <div class="mode-chips" role="tablist">
+          <button type="button" class="chip-btn active" data-mode="dew" role="tab" aria-selected="true">Tetesan Embun</button>
+          <button type="button" class="chip-btn" data-mode="flow" role="tab" aria-selected="false">Aliran Kaca Cair</button>
+          <button type="button" class="chip-btn" data-mode="prism" role="tab" aria-selected="false">Kristal Prismatik</button>
+        </div>
+      </div>
+
+      <div class="toolbar-group">
+        <!-- Comparison Toggle: Liquid Glass vs Generic Frosted Glass -->
+        <button type="button" class="toggle-compare-btn" id="btnToggleCompare">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+          Bandingkan: Kaca Buram Biasa
+        </button>
+
+        <button type="button" class="action-ripple-btn" id="btnTriggerRipple">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+          </svg>
+          Teteskan Riak
+        </button>
+      </div>
+    </section>
+
+    <!-- Master Stage: Liquid Glass Artifact -->
+    <section class="stage-wrapper" id="stageWrapper" aria-label="Panggung Uji Kaca Cair Interaktif">
+      
+      <!-- Vivid Background Scene showing through the liquid glass -->
+      <div class="stage-backdrop-scene" aria-hidden="true">
+        <div class="scene-orbit orbit-1"></div>
+        <div class="scene-orbit orbit-2"></div>
+        <span class="floating-module-symbol sym-1">🧊</span>
+        <span class="floating-module-symbol sym-2">🪐</span>
+        <span class="floating-module-symbol sym-3">🧩</span>
+        <span class="floating-module-symbol sym-4">⚖️</span>
+      </div>
+
+      <!-- The Crystal Liquid Glass Card -->
+      <article class="liquid-glass-card" id="liquidCard" tabindex="0" role="region" aria-label="Kartu Kaca Cair Interaktif">
+        
+        <div class="glass-content">
+          <!-- Text and Actions -->
+          <div class="glass-text-column">
+            <div class="glass-badge-row">
+              <span class="glass-pill">
+                <span class="glass-pill-dot" aria-hidden="true"></span>
+                Kaca Fluida Bening 60 FPS
+              </span>
+              <span class="glass-pill">Transparansi 96%</span>
+            </div>
+
+            <h2 class="glass-headline">
+              POTER EDUGAMES: Belajar Nalar Spasial 3D
+            </h2>
+
+            <p class="glass-paragraph">
+              Sentuh dan gerakkan kursor di atas bidang kaca ini. Perhatikan bagaimana cahaya kaustik membiaskan latar belakang secara alami, dan tepi fluida menyesuaikan kelenturan secara organik tanpa kehilangan keterbacaan teks.
+            </p>
+
+            <a href="/download" class="liquid-cta-btn" id="liquidCtaBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Unduh APK Resmi POTER
+            </a>
+
+            <!-- Telemetry Indicator Strip -->
+            <div class="glass-telemetry-strip" aria-label="Indikator Fisika Kaca">
+              <div class="tele-item">
+                <small>Indeks Bias (RI)</small>
+                <strong id="refractionValTag">1.48 RI (Murni)</strong>
+              </div>
+              <div class="tele-item">
+                <small>Riak Terpicu</small>
+                <strong id="rippleCountTag">0x Riak</strong>
+              </div>
+              <div class="tele-item">
+                <small>Respon Fisika</small>
+                <strong>Elastis Harmonik</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D Crystal Prism within the Liquid Glass -->
+          <div class="glass-visual-preview" aria-hidden="true">
+            <div class="liquid-crystal-prism">
+              <div class="crystal-face crystal-face-front">🧊 3D</div>
+              <div class="crystal-face crystal-face-back">🧩 Nalar</div>
+              <div class="crystal-face crystal-face-right">🪐 Sains</div>
+              <div class="crystal-face crystal-face-left">💡 Logika</div>
+              <div class="crystal-face crystal-face-top">⚖️ Pasar</div>
+              <div class="crystal-face crystal-face-bottom">📦 Rapikan</div>
+            </div>
+            <span class="crystal-caption">Sentuh kaca untuk memicu gelombang riak</span>
+          </div>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- Sub-Cards Section: Modul Permainan POTER EDUGAMES -->
+    <section aria-labelledby="sub-cards-heading">
+      <h2 id="sub-cards-heading" class="sub-cards-title">Penerapan pada Kartu Modul Permainan</h2>
+      
+      <div class="sub-cards-grid">
+        <article class="liquid-sub-card">
+          <div class="sub-card-icon" aria-hidden="true">🎴</div>
+          <h3>Pasangkan Kartu</h3>
+          <span class="sub-card-category">Modul Memori & Visual</span>
+          <p>Mencocokkan pasangan kartu gambar edukatif untuk melatih konsentrasi dan daya ingat anak dengan transparansi faset yang bening.</p>
+        </article>
+
+        <article class="liquid-sub-card">
+          <div class="sub-card-icon" aria-hidden="true">🍰</div>
+          <h3>Mengelompokkan</h3>
+          <span class="sub-card-category">Modul Klasifikasi Warna</span>
+          <p>Memilah kue berdasarkan bentuk dan warna agar anak terbiasa berpikir runut dengan visualisasi yang nyaman di mata.</p>
+        </article>
+
+        <article class="liquid-sub-card">
+          <div class="sub-card-icon" aria-hidden="true">⚖️</div>
+          <h3>Timbangan Pasar</h3>
+          <span class="sub-card-category">Modul Konsep Berat</span>
+          <p>Memahami perbedaan beban dan kesetimbangan benda dengan interaksi geser yang stabil dan jelas tanpa distorsi berlebihan.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Antislop Design Notes -->
+    <section class="notes-section" aria-label="Catatan Teknis Desain Kaca Cair">
+      <div class="notes-header">
+        <h2>Prinsip Desain: Mengapa Kaca Cair Ini "Bening & Bernyawa"</h2>
+        <p>Menghindari jebakan glassmorphism generik (AI slop) demi pengalaman visual yang berbobot dan bermakna.</p>
+      </div>
+
+      <div class="notes-grid">
+        <div class="note-item">
+          <span class="note-num">01</span>
+          <div>
+            <strong>Transparansi Murni Tanpa Kusam</strong>
+            <p>Tidak melapisi seluruh elemen dengan kabut putih abu-abu. Kami memisahkan cahaya kaustik di tepian kaca sehingga latar tetap jernih dan teks tetap tajam (WCAG AA).</p>
+          </div>
+        </div>
+
+        <div class="note-item">
+          <span class="note-num">02</span>
+          <div>
+            <strong>Fisika Fluida Alami (Damped Harmonic)</strong>
+            <p>Gerak lentur batas kaca dan pantulan cahaya meluncur dengan jeda inersia cairan, lalu kembali stabil secara tenang tanpa animasi berulang yang melelahkan mata.</p>
+          </div>
+        </div>
+
+        <div class="note-item">
+          <span class="note-num">03</span>
+          <div>
+            <strong>Dukungan Aksesibilitas Penuh</strong>
+            <p>Dapat dinavigasi via keyboard (Tab/Enter) dan mematuhi preferensi <code>prefers-reduced-motion</code> agar tetap tenang dan nyaman bagi seluruh pengguna.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/js/demo-liquid-glass.js"></script>
+</body>
+</html>
