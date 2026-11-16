@@ -19,14 +19,35 @@
 
   <main>
     <section class="intro" aria-labelledby="demo-title">
-      <p class="eyebrow">DEMO UI • BELUM DITERAPKAN</p>
-      <h1 id="demo-title">Satu panel kaca, bergerak mengikuti pilihan.</h1>
-      <p class="intro-copy">Arahkan mouse untuk melihat pratinjau, lalu tekan salah satu menu. Panel kaca bening mengempis menjadi kapsul cair, meluncur, lalu melebar lembut pada pilihan baru.</p>
+      <p class="eyebrow">DEMO UI • INTERAKSI NAVBAR</p>
+      <h1 id="demo-title">Eksplorasi Efek Kaca pada Navbar.</h1>
+      <p class="intro-copy">Bandingkan tampilan <strong>Kaca Plastik (Acrylic Glass)</strong> dengan kilap cembung khas polikarbonat, dan <strong>Kaca Cair (Liquid Glass)</strong> dengan refraksi optik fluida lembut.</p>
     </section>
+
+    <!-- Interactive Material Switcher -->
+    <div class="material-switcher-box">
+      <span class="material-hint">Pilih Karakter Kaca:</span>
+      <div class="material-pills" role="radiogroup" aria-label="Pilih gaya material navbar">
+        <button type="button" class="btn-mat-choice is-active" id="btnMatPlastic" data-material="plastic" aria-checked="true" role="radio">
+          <span>🫧</span>
+          <div>
+            <strong>Kaca Plastik (Acrylic Glass)</strong>
+            <small>Kilap cembung molded, batas chamfer tebal, refleksi kapsul ganda</small>
+          </div>
+        </button>
+        <button type="button" class="btn-mat-choice" id="btnMatLiquid" data-material="liquid" aria-checked="false" role="radio">
+          <span>💧</span>
+          <div>
+            <strong>Kaca Cair (Liquid Glass)</strong>
+            <small>Transparan lembut, refraksi fluida optik, pantulan lensa tipis</small>
+          </div>
+        </button>
+      </div>
+    </div>
 
     <section class="nav-stage" aria-label="Demo navbar POTER EDUGAMES">
       <div class="stage-glow" aria-hidden="true"></div>
-      <nav class="sliding-nav" aria-label="Contoh navigasi utama">
+      <nav class="sliding-nav" data-material="plastic" aria-label="Contoh navigasi utama">
         <span class="nav-indicator" aria-hidden="true"></span>
         <a class="sliding-link is-active" href="#demo" aria-current="page">Demo Aplikasi</a>
         <a class="sliding-link" href="#game">Game</a>
@@ -41,7 +62,7 @@
           <span>Login Admin</span>
         </a>
       </nav>
-      <p class="stage-hint"><span aria-hidden="true">↖</span> Tekan Game atau menu lain untuk memindahkan panel aktif</p>
+      <p class="stage-hint"><span aria-hidden="true">↖</span> Arahkan mouse untuk melihat kapsul kaca meluncur antar menu</p>
     </section>
 
     <section class="notes" aria-label="Catatan rancangan">

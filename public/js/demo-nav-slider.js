@@ -86,4 +86,20 @@
 
   window.addEventListener('resize', () => moveIndicator(activeLink, true));
   moveIndicator(activeLink, true);
+
+  // Material Switcher: Kaca Plastik (Acrylic) vs Kaca Cair (Liquid)
+  const btnMatPlastic = document.getElementById('btnMatPlastic');
+  const btnMatLiquid = document.getElementById('btnMatLiquid');
+
+  const setMaterial = (mat) => {
+    nav.setAttribute('data-material', mat);
+    btnMatPlastic?.classList.toggle('is-active', mat === 'plastic');
+    btnMatPlastic?.setAttribute('aria-checked', String(mat === 'plastic'));
+    btnMatLiquid?.classList.toggle('is-active', mat === 'liquid');
+    btnMatLiquid?.setAttribute('aria-checked', String(mat === 'liquid'));
+    moveIndicator(activeLink, true);
+  };
+
+  btnMatPlastic?.addEventListener('click', () => setMaterial('plastic'));
+  btnMatLiquid?.addEventListener('click', () => setMaterial('liquid'));
 })();

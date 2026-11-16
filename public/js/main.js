@@ -445,6 +445,12 @@ document.addEventListener('DOMContentLoaded', () => {
                      links[0];
     let isHovering = false;
 
+    // Optional query param / stored setting for plastic glass test on main web
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('nav') === 'plastic' || localStorage.getItem('poter_nav_mat') === 'plastic') {
+      nav.setAttribute('data-nav-material', 'plastic');
+    }
+
     function moveSlider(targetLink, isImmediate = false) {
       if (!targetLink) {
         slider.classList.remove('is-visible');

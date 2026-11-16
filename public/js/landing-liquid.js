@@ -779,6 +779,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initNavGlassSlider();
 
+  // -----------------------------------------------------------
+  // Material Switcher: Kaca Plastik (Acrylic) vs Kaca Cair (Liquid)
+  // -----------------------------------------------------------
+  const navGlassBar = document.getElementById('navGlassBar');
+  const navMaterialToggle = document.getElementById('navMaterialToggle');
+  const navMaterialIcon = document.getElementById('navMaterialIcon');
+  const navMaterialText = document.getElementById('navMaterialText');
+
+  let currentNavMaterial = 'plastic'; // Default to plastic glass
+  if (navGlassBar) {
+    navGlassBar.setAttribute('data-nav-material', currentNavMaterial);
+  }
+
+  function updateMaterialUi() {
+    if (navGlassBar) {
+      navGlassBar.setAttribute('data-nav-material', currentNavMaterial);
+    }
+    if (navMaterialIcon) {
+      navMaterialIcon.textContent = currentNavMaterial === 'plastic' ? '🫧' : '💧';
+    }
+    if (navMaterialText) {
+      navMaterialText.textContent = currentNavMaterial === 'plastic' ? 'Kaca Plastik' : 'Kaca Cair';
+    }
+    if (navMaterialToggle) {
+      navMaterialToggle.title = currentNavMaterial === 'plastic'
+        ? 'Bahan aktif: Kaca Plastik (Klik untuk ganti ke Kaca Cair)'
+        : 'Bahan aktif: Kaca Cair (Klik untuk ganti ke Kaca Plastik)';
+    }
+  }
+
+  navMaterialToggle?.addEventListener('click', () => {
+    currentNavMaterial = currentNavMaterial === 'plastic' ? 'liquid' : 'plastic';
+    updateMaterialUi();
+  });
+  updateMaterialUi();
+
   loadReviewChallenge();
   loadReviews(false);
 });

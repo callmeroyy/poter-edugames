@@ -235,6 +235,152 @@ main {
 
 .admin-link:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
 
+/* Material Switcher Controls */
+.material-switcher-box {
+  max-width: 680px;
+  margin: 0 auto 30px;
+  text-align: center;
+}
+
+.material-hint {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 850;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin-bottom: 12px;
+}
+
+.material-pills {
+  display: inline-flex;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.75);
+  padding: 6px;
+  border-radius: 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+}
+
+.btn-mat-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 13px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.22s ease;
+}
+
+.btn-mat-choice span {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.btn-mat-choice strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #FFFFFF;
+}
+
+.btn-mat-choice small {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.btn-mat-choice:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+.btn-mat-choice.is-active {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(2, 132, 199, 0.2) 100%),
+    rgba(15, 23, 42, 0.8);
+  border: 1.5px solid rgba(56, 189, 248, 0.75);
+  box-shadow: 0 4px 20px rgba(2, 132, 199, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* =========================================================
+   KACA PLASTIK (ACRYLIC GLASS / POLYCARBONATE MOLDED GLASS)
+   ========================================================= */
+
+/* The Outer Acrylic Molded Frame */
+.sliding-nav[data-material="plastic"] {
+  border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.68);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.08) 32%, rgba(255, 255, 255, 0.015) 65%, rgba(255, 255, 255, 0.12) 100%),
+    rgba(15, 23, 42, 0.76);
+  box-shadow:
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px 0 rgba(0, 0, 0, 0.45),
+    inset 2px 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset -2px 0 2px 0 rgba(255, 255, 255, 0.3),
+    0 24px 55px -10px rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(56, 189, 248, 0.24);
+  backdrop-filter: blur(20px) saturate(160%) brightness(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(160%) brightness(1.12);
+}
+
+/* The Sliding Plastic Capsule (Injection Molded Acrylic) */
+.sliding-nav[data-material="plastic"] .nav-indicator {
+  border-radius: 13px;
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.64) 0%, rgba(255, 255, 255, 0.22) 48%, rgba(255, 255, 255, 0.04) 50%, rgba(56, 189, 248, 0.16) 100%),
+    rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 1),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.35),
+    0 10px 28px rgba(0, 0, 0, 0.38),
+    0 0 20px rgba(56, 189, 248, 0.32);
+  backdrop-filter: blur(14px) saturate(145%) brightness(1.18);
+  -webkit-backdrop-filter: blur(14px) saturate(145%) brightness(1.18);
+}
+
+/* Molded Gloss Dome on Top of Capsule (The Signature Plastic Sheen) */
+.sliding-nav[data-material="plastic"] .nav-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 52%;
+  border-radius: 11px 11px 50% 50% / 11px 11px 24% 24%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.16) 80%, transparent 100%);
+  transform: none;
+  opacity: 1;
+}
+
+/* Bottom Specular Rim Light */
+.sliding-nav[data-material="plastic"] .nav-indicator::after {
+  content: "";
+  position: absolute;
+  top: auto;
+  bottom: 1.5px;
+  left: 10%;
+  width: 80%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+  opacity: 0.95;
+}
+
+.sliding-nav[data-material="plastic"] .sliding-link:hover,
+.sliding-nav[data-material="plastic"] .sliding-link.is-active {
+  color: #38bdf8;
+  text-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+}
+
 .stage-hint {
   margin: 26px 0 0;
   color: #91a4bc;

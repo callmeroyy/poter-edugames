@@ -34,7 +34,7 @@
 
   <!-- Floating Liquid Glass Navbar -->
   <header class="site-header">
-    <nav class="nav-glass-bar" aria-label="Navigasi Utama">
+    <nav class="nav-glass-bar" id="navGlassBar" data-nav-material="plastic" aria-label="Navigasi Utama">
       <a href="/" class="brand-wrap">
         <img src="/assets/poter-logo.png" width="40" height="40" alt="Logo POTER EDUGAMES">
         <div class="brand-text">
@@ -54,6 +54,12 @@
       </div>
 
       <div class="nav-actions">
+        <!-- Kaca Material Toggle (Kaca Plastik vs Kaca Cair) -->
+        <button type="button" class="nav-material-btn" id="navMaterialToggle" title="Ganti Efek Kaca: Kaca Plastik ⇄ Kaca Cair" aria-label="Ganti Efek Kaca">
+          <span id="navMaterialIcon" aria-hidden="true">🫧</span>
+          <span class="nav-material-label" id="navMaterialText">Kaca Plastik</span>
+        </button>
+
         <!-- Day / Night Toggle -->
         <button type="button" class="theme-toggle-btn" id="themeToggle" aria-label="Ganti mode siang dan malam" title="Ganti Mode Siang / Malam">
           <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
