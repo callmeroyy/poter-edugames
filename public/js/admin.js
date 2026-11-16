@@ -1392,14 +1392,19 @@ async function loadAdminReviews() {
     }
     const contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      throw new Error('Sesi login telah berakhir atau format respon server tidak valid. Silakan masuk kembali.');
+      window.location.href = '/admin/login.html';
+      return;
     }
     const json = await res.json();
+    if (json.authenticated === false || res.status === 401) {
+      window.location.href = '/admin/login.html';
+      return;
+    }
     if (!res.ok || !json.success) {
       throw new Error(json.message || json.error || 'Gagal memuat data.');
     }
 
-    const rows = json.data || [];
+    const rows = Array.isArray(json.data) ? json.data : [];
     if (rows.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 28px; color: var(--admin-text-muted);">Belum ada saran atau ulasan yang masuk.</td></tr>';
       return;

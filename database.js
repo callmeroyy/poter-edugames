@@ -162,6 +162,11 @@ async function initializePostgres() {
     );
     ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT DEFAULT 'poteredugames@gmail.com';
     ALTER TABLE admin_sessions ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP;
+    ALTER TABLE reviews ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'approved';
+    ALTER TABLE reviews ADD COLUMN IF NOT EXISTS rating INTEGER NOT NULL DEFAULT 5;
+    ALTER TABLE reviews ADD COLUMN IF NOT EXISTS fingerprint TEXT;
+    ALTER TABLE reviews ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'Orang Tua';
+    ALTER TABLE reviews ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'Ulasan';
     CREATE INDEX IF NOT EXISTS idx_access_logs_timestamp ON access_logs(timestamp);
     CREATE INDEX IF NOT EXISTS idx_download_logs_verified ON download_logs(verified, timestamp);
     CREATE INDEX IF NOT EXISTS idx_install_logs_verified ON install_logs(verified, timestamp);
@@ -277,6 +282,13 @@ function initializeSqlite() {
 
   const userColumns = sqlite.prepare('PRAGMA table_info(users)').all().map(column => column.name);
   if (!userColumns.includes('email')) sqlite.exec("ALTER TABLE users ADD COLUMN email TEXT DEFAULT 'poteredugames@gmail.com'");
+
+  const reviewColumns = sqlite.prepare('PRAGMA table_info(reviews)').all().map(column => column.name);
+  if (!reviewColumns.includes('status')) sqlite.exec("ALTER TABLE reviews ADD COLUMN status TEXT NOT NULL DEFAULT 'approved'");
+  if (!reviewColumns.includes('rating')) sqlite.exec("ALTER TABLE reviews ADD COLUMN rating INTEGER NOT NULL DEFAULT 5");
+  if (!reviewColumns.includes('fingerprint')) sqlite.exec("ALTER TABLE reviews ADD COLUMN fingerprint TEXT");
+  if (!reviewColumns.includes('role')) sqlite.exec("ALTER TABLE reviews ADD COLUMN role TEXT DEFAULT 'Orang Tua'");
+  if (!reviewColumns.includes('category')) sqlite.exec("ALTER TABLE reviews ADD COLUMN category TEXT DEFAULT 'Ulasan'");
 }
 
 async function seedDefaults() {

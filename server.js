@@ -223,6 +223,7 @@ async function requireAuth(req, res, next) {
       return res.status(401).json({
         success: false,
         authenticated: false,
+        message: 'Sesi login tidak valid atau telah berakhir karena batas waktu (idle timeout). Silakan masuk kembali.',
         error: 'Sesi login tidak valid atau telah berakhir karena batas waktu (idle timeout). Silakan masuk kembali.'
       });
     }
@@ -690,15 +691,16 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 app.get('/api/auth/me', async (req, res) => {
-  const token = req.cookies.poter_admin_token;
-  const session = token
-    ? await db.prepare(`
-        SELECT user_id AS id, username, role, created_at
-        FROM admin_sessions
-        WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP
-      `).get(sessionTokenHash(token))
-    : null;
+  const session = await getAuthenticatedAdmin(req);
   if (!session) {
+    if (req.cookies.poter_admin_token) {
+      res.clearCookie('poter_admin_token', {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: isProduction,
+        path: '/'
+      });
+    }
     return res.json({ authenticated: false });
   }
   res.json({ authenticated: true, user: session });
@@ -2214,9 +2216,14 @@ app.get('/api/admin/reviews', requireAuth, async (req, res) => {
       ORDER BY CASE WHEN status = 'pending' THEN 0 ELSE 1 END, created_at DESC, id DESC
       LIMIT 100
     `).all();
-    res.json({ success: true, data: rows });
+    res.json({ success: true, data: rows || [] });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Gagal memuat daftar saran & ulasan.' });
+    console.error('Error fetching admin reviews:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal memuat daftar saran & ulasan.',
+      error: err.message
+    });
   }
 });
 
